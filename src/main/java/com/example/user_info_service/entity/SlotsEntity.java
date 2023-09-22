@@ -1,13 +1,21 @@
 package com.example.user_info_service.entity;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 
+@Setter
+@Getter
 @Entity
-@Data
 @Table(name = "slots_info")
-public class SlotsEntity {
+public class SlotsEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 2405172041950251808L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     @Column(name = "id")
@@ -22,7 +30,13 @@ public class SlotsEntity {
     @Column(name = "is_available")
     private Boolean isAvailable;
 
-    @ManyToOne
-    @JoinColumn(name = "vehicle_number", referencedColumnName = "vehicle_number", insertable = false, updatable = false)
+    @Column(name = "vehicle_number")
+    private String vehicleNumber;
+
+    @Column(name = "booking_id")
+    private String bookingId;
+
+    @OneToOne
+    @JoinColumn(name = "booking_id", referencedColumnName = "booking_id", insertable = false, updatable = false)
     private BookingEntity bookingEntity;
 }

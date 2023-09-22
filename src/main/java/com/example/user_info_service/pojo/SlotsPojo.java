@@ -1,11 +1,10 @@
 package com.example.user_info_service.pojo;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-
-@Data
+@Getter
+@Setter
 public class SlotsPojo {
 
     private String vehicleNumber;

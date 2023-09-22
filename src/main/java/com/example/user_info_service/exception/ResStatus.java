@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum ResStatus {
 
     ENTER_NUMBER("5001", "please enter mobile number"),
-    MOBILE_DIGIT("5002", "please enter 10 digit mobile number");
+    MOBILE_DIGIT("5002", "please enter 10 digit mobile number"),
+    BOOKING_ID_NOT_FOUND("5003","BooingID not found");
 
     private final String code;
     private final String desc;

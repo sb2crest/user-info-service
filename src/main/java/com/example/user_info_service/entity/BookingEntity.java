@@ -1,23 +1,30 @@
 package com.example.user_info_service.entity;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 
+@Getter
+@Setter
 @Entity
-@Data
 @Table(name = "booking_info")
-public class BookingEntity {
+public class BookingEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 2405172041950251808L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
     @Column(name = "booking_id")
     private String bookingId;
 
-    @Column(name = "vehicle_number", insertable = false, updatable = false)
+    @Column(name = "vehicle_number")
     private String vehicleNumber;
 
     @Column(name = "from_date")
@@ -26,8 +33,14 @@ public class BookingEntity {
     @Column(name = "to_date")
     private String toDate;
 
+    @Column(name = "mobile")
+    private String mobile;
+
+    @Column(name = "booking_status")
+    private String bookingStatus;
+
     @ManyToOne
-    @JoinColumn(name = "mobile", referencedColumnName = "mobile")
+    @JoinColumn(name = "mobile",referencedColumnName = "mobile", updatable = false, insertable = false)
     private UserEntity userEntity;
 
 }

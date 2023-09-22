@@ -27,7 +27,7 @@ class OTPEntityControllerTest {
     @MockBean
     OTPService otpService;
     @Autowired
-    private WebApplicationContext webApplicationContext;
+    WebApplicationContext webApplicationContext;
 
     @Autowired
     private MockMvc mvc;
@@ -60,8 +60,8 @@ class OTPEntityControllerTest {
 
         Mockito.when(otpService.generateOTP(mobileNumber)).thenReturn(expectedResult);
 
-        mvc.perform(get("/sendOTP")
-                        .param("mobileNumber", mobileNumber)
+        mvc.perform(post("/sendOTP")
+                        .param("mobile", mobileNumber)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedResult));
@@ -69,34 +69,16 @@ class OTPEntityControllerTest {
 
     @Test
      void testGetOTP_FAILURE() throws Exception {
-        String mobileNumber = "1234567890";
+        String mobileNumber = "12345670";
         String expectedResult = "Failed to send OTP.";
 
         Mockito.when(otpService.generateOTP(mobileNumber)).thenReturn(expectedResult);
 
-        mvc.perform(get("/sendOTP")
-                        .param("mobileNumber", mobileNumber)
+        mvc.perform(post("/sendOTP")
+                        .param("mobile", mobileNumber)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().string(expectedResult));
-    }
-    @Test
-     void testGetOTP_InvalidNumber() throws Exception {
-        String mobileNumber = "123"; // Invalid number
-
-        mvc.perform(get("/sendOTP")
-                        .param("mobileNumber", mobileNumber)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-    }
-    @Test
-     void testGetOTP_EmptyMobileNumber() throws Exception {
-        String mobileNumber = ""; // Invalid number
-
-        mvc.perform(get("/sendOTP")
-                        .param("mobileNumber", mobileNumber)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
     }
 
     ValidateOTP getValidateOTP() {

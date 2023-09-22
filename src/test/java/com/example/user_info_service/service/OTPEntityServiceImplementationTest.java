@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -38,7 +37,7 @@ class OTPEntityServiceImplementationTest {
 
     @Test
     void validateSMSForUnSuccessfulValidation() {
-        Mockito.when(otpRepository.findByPhoneNumber(Mockito.anyString(),Mockito.any())).thenReturn(Arrays.asList());
+        Mockito.when(otpRepository.findByPhoneNumber(Mockito.anyString(),Mockito.any())).thenReturn(List.of());
         assertEquals("Validation Unsuccessful", otpServiceImplementation.validateSMS(getValidateOTP()));
     }
 
@@ -54,7 +53,7 @@ class OTPEntityServiceImplementationTest {
      void testGenerateOTP_SuccessfulSend() throws IOException {
         ReflectionTestUtils.setField(otpServiceImplementation,"apiKey","Nu9NlFqe7Q3kRQRv1a168kfYqu6aDx9y6Wxy8kUpOyddGolHsw9xtEtd3xWw");
         ReflectionTestUtils.setField(otpServiceImplementation,"smsUrl","https://www.fast2sms.com/dev/bulkV2?authorization=");
-        String mobileNumber = "9535858675";
+        String mobileNumber = "1234567890";
 
         OTPServiceImplementation spyService = Mockito.spy(otpServiceImplementation);
 

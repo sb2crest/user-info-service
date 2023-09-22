@@ -39,7 +39,7 @@ public class OTPServiceImplementation implements OTPService {
 
     @Override
     public String validateSMS(ValidateOTP validateOTP) {
-        List<OTPEntity> responseOTPEntity = otpRepository.findByPhoneNumber(validateOTP.getMobile(), LocalDateTime.parse(formatter.format(LocalDateTime.now().minusMinutes(5))));
+        List<OTPEntity> responseOTPEntity = otpRepository.findByPhoneNumber(validateOTP.getMobile(),formatter.format(LocalDateTime.now().minusMinutes(5)));
         if (!responseOTPEntity.isEmpty() && responseOTPEntity.stream().anyMatch(o -> o.getOtpPassword().equals(validateOTP.getOtp()))) {
             return "Successfully validated";
         }

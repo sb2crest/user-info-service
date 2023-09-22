@@ -4,13 +4,19 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 
 
 @Setter
 @Getter
 @Entity
 @Table(name = "otp")
-public class OTPEntity {
+public class OTPEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 2405172041950251808L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

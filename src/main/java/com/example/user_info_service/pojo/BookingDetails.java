@@ -3,16 +3,11 @@ package com.example.user_info_service.pojo;
 import lombok.Getter;
 import lombok.Setter;
 
-
-@Setter
 @Getter
-public class BookingPojo {
+@Setter
+public class BookingDetails {
 
-    private String vehicleNumber;
-
-    private String fromDate;
-
-    private String toDate;
+    private VehiclePojo vehiclePojo;
 
     private UserPojo userPojo;
 

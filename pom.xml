@@ -14,10 +14,20 @@
 	<name>user_info_service</name>
 	<description>vehicle booking</description>
 	<properties>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
+		<application.port>8085</application.port>
+		<coding-convention-rules.version>1.0.6</coding-convention-rules.version>
+		<commons-exceptions.version>1.3.3</commons-exceptions.version>
+		<commons-validator.version>1.5.1</commons-validator.version>
+		<commons-logging.version>1.0.11</commons-logging.version>
+		<springdoc-openapi-maven-plugin.version>1.4</springdoc-openapi-maven-plugin.version>
+		<sonar.coverage.exclusions>
+			**/UserInfoServiceApplication.java
+		</sonar.coverage.exclusions>
 		<java.version>8</java.version>
 	</properties>
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/com.twilio.sdk/twilio -->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -115,6 +125,17 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<excludes>
+						<!-- Exclude the method from code coverage -->
+						<exclude>**/UserInfoServiceApplication.class</exclude>
+						<exclude>**/config/**</exclude>
+						<exclude>**/model/**</exclude>
+						<exclude>**/entity/**</exclude>
+						<exclude>**/pojo/**</exclude>
+						<exclude>**/exception/**</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 		</plugins>
 

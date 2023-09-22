@@ -1,16 +1,22 @@
 package com.example.user_info_service.entity;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "user_info")
-public class UserEntity {
+public class UserEntity implements Serializable{
+    @Serial
+    private static final long serialVersionUID = 2405172041950251808L;
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
@@ -23,8 +29,8 @@ public class UserEntity {
     @Column(name = "email")
     private String email;
 
-  /*  @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL)
-    private List<BookingEntity> bookingEntityList;*/
+    @OneToMany(targetEntity = BookingEntity.class, mappedBy = "userEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<BookingEntity> bookingEntity;
 
 }
 
