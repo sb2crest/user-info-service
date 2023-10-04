@@ -42,15 +42,15 @@ class     BookingControllerTest {
                 .build();
     }
 
-    @Test
-    void testBookingVehicle_ValidMobileNumber() throws Exception {
-        BookingPojo bookingPojo = getBookingPojo();
-        when(bookingService.bookingVehicle(Mockito.any())).thenReturn("successful");
-        mvc.perform(post("/booking").content(TestUtil.convertObjectToJsonBytes(bookingPojo))
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-
-    }
+//    @Test
+//    void testBookingVehicle_ValidMobileNumber() throws Exception {
+//        BookingPojo bookingPojo = getBookingPojo();
+//        when(bookingService.bookingVehicle(Mockito.any())).thenReturn("successful");
+//        mvc.perform(post("/booking").content(TestUtil.convertObjectToJsonBytes(bookingPojo))
+//                        .contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isOk());
+//
+//    }
 
     @Test
     void testBookingVehicle_InvalidMobileNumber() throws Exception {

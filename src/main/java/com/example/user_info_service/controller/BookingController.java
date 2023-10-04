@@ -1,7 +1,8 @@
 package com.example.user_info_service.controller;
 
-import com.example.user_info_service.exception.NumberException;
+import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
+import com.example.user_info_service.model.GmailValidator;
 import com.example.user_info_service.pojo.BookingDetails;
 import com.example.user_info_service.pojo.BookingPojo;
 import com.example.user_info_service.service.BookingService;
@@ -23,6 +24,7 @@ public class BookingController {
     ResponseEntity<String> bookingVehicle(@RequestBody BookingPojo bookingPojo) throws ParseException {
         try{
         checkMobileNumber(bookingPojo.getUserPojo().getMobile());
+        emailValidation(bookingPojo.getUserPojo().getEmail());
         return new ResponseEntity<>(bookingService.bookingVehicle(bookingPojo), HttpStatus.OK);
     } catch (Exception e){
             log.info("exception :"+e.getMessage());
@@ -30,12 +32,18 @@ public class BookingController {
         }
     }
 
+    private void emailValidation(String email) {
+        if (! email.isBlank() && ! GmailValidator.isValidGmail(email)){
+            throw new BookingException(ResStatus.INVALID_EMAIL);
+        }
+    }
+
     private void checkMobileNumber(String mobileNumber) {
         if(mobileNumber.isEmpty()){
-            throw new NumberException(ResStatus.ENTER_NUMBER);
+            throw new BookingException(ResStatus.ENTER_NUMBER);
         }
         if (mobileNumber.length()!=10){
-            throw new NumberException(ResStatus.MOBILE_DIGIT);
+            throw new BookingException(ResStatus.MOBILE_DIGIT);
         }
     }
 

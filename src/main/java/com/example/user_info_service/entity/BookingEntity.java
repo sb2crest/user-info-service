@@ -39,6 +39,9 @@ public class BookingEntity implements Serializable {
     @Column(name = "booking_status")
     private String bookingStatus;
 
+    @Column(name = "booking_date")
+    private String bookingDate;
+
     @ManyToOne
     @JoinColumn(name = "mobile",referencedColumnName = "mobile", updatable = false, insertable = false)
     private UserEntity userEntity;

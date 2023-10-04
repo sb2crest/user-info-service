@@ -4,8 +4,8 @@ import com.example.user_info_service.entity.BookingEntity;
 import com.example.user_info_service.entity.SlotsEntity;
 import com.example.user_info_service.entity.UserEntity;
 import com.example.user_info_service.entity.VehicleEntity;
-import com.example.user_info_service.exception.BookingStatusEnum;
-import com.example.user_info_service.exception.NumberException;
+import com.example.user_info_service.model.BookingStatusEnum;
+import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.pojo.BookingPojo;
 import com.example.user_info_service.pojo.SlotsPojo;
 import com.example.user_info_service.pojo.UserPojo;
@@ -101,7 +101,7 @@ class BookingServiceImplTest {
     @Test
     void getBookingDetailsWhenNoMatchingDetailsFoundForBookingId() {
         when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(null);
-        assertThrows(NumberException.class, () -> bookingService.getBookingDetails("123"));
+        assertThrows(BookingException.class, () -> bookingService.getBookingDetails("123"));
     }
 
     @Test

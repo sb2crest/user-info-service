@@ -4,9 +4,9 @@ import com.example.user_info_service.entity.BookingEntity;
 import com.example.user_info_service.entity.SlotsEntity;
 import com.example.user_info_service.entity.UserEntity;
 import com.example.user_info_service.entity.VehicleEntity;
-import com.example.user_info_service.exception.BookingStatusEnum;
-import com.example.user_info_service.exception.NumberException;
+import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
+import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.pojo.*;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.SlotsRepo;
@@ -17,7 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
-import java.text.ParseException;
+import java.text.*;
+import java.util.Date;
 import java.util.UUID;
 
 
@@ -33,6 +34,8 @@ public class BookingServiceImpl implements BookingService {
     BookingRepo bookingRepo;
     @Autowired
     VehicleInfoRepo vehicleInfoRepo;
+
+    private final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
 
     @Override
     @Transactional
@@ -59,6 +62,7 @@ public class BookingServiceImpl implements BookingService {
         bookingEntity.setBookingId(generateBookingId());
         bookingEntity.setMobile(bookingPojo.getUserPojo().getMobile());
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+        bookingEntity.setBookingDate(format.format(new Date()));
         bookingRepo.save(bookingEntity);
     }
 
@@ -96,7 +100,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingDetails getBookingDetails(String bookingId) {
         BookingEntity bookingEntity = bookingRepo.getByBookingId(bookingId);
         if (bookingEntity == null) {
-            throw new NumberException(ResStatus.BOOKING_ID_NOT_FOUND);
+            throw new BookingException(ResStatus.BOOKING_ID_NOT_FOUND);
         }
         BookingDetails bookingDetails = new BookingDetails();
         getUser(bookingEntity, bookingDetails);

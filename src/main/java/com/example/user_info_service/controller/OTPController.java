@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
+@CrossOrigin(origins = "http://localhost:8100")
 public class OTPController {
     private final OTPService otpService;
 
