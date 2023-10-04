@@ -1,6 +1,8 @@
-package com.example.user_info_service.exception;
+package com.example.user_info_service.model;
 
 import lombok.Getter;
+
+import java.util.Arrays;
 
 @Getter
 public enum BookingStatusEnum {
@@ -14,5 +16,9 @@ public enum BookingStatusEnum {
     BookingStatusEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;
+    }
+    public static String getDesc(String code){
+        return Arrays.stream(BookingStatusEnum.values()).filter(v -> v.code.equalsIgnoreCase(code)).findFirst()
+                .map(BookingStatusEnum::getDesc).orElse(code);
     }
 }
