@@ -12,6 +12,4 @@ public class SlotsPojo {
     private String fromDate;
 
     private String toDate;
-
-    private Boolean isAvailable;
 }

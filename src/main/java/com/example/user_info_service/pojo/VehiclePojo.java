@@ -8,9 +8,9 @@ import lombok.Setter;
 @Getter
 public class VehiclePojo {
 
-    private Integer seatCapacity;
-
     private String vehicleNumber;
+
+    private Integer seatCapacity;
 
     private String imageUrl;
 

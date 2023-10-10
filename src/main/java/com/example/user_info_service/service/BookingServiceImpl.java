@@ -18,8 +18,7 @@ import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.text.*;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 
 
 @Component
@@ -41,17 +40,17 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public String bookingVehicle(BookingPojo bookingPojo) throws ParseException {
 
-            BookingEntity bookingEntity = new BookingEntity();
-            SlotsEntity slotsEntity = new SlotsEntity();
+        BookingEntity bookingEntity = new BookingEntity();
+        SlotsEntity slotsEntity = new SlotsEntity();
 
-            boolean vehicleAvailability = slotsRepo.findVehicleAvailabilityOnRequiredDate(bookingPojo.getVehicleNumber(), bookingPojo.getFromDate(), bookingPojo.getToDate());
-            if (!vehicleAvailability) {
-                saveUser(bookingPojo);
-                saveBooking(bookingEntity, bookingPojo);
-                saveSlot(slotsEntity, bookingEntity);
-            } else {
-                return "Slots already Booked";
-            }
+        boolean vehicleAvailability = slotsRepo.findVehicleAvailabilityOnRequiredDate(bookingPojo.getVehicleNumber(), bookingPojo.getFromDate(), bookingPojo.getToDate());
+        if (!vehicleAvailability) {
+            saveUser(bookingPojo);
+            saveBooking(bookingEntity, bookingPojo);
+            saveSlot(slotsEntity, bookingEntity);
+        } else {
+            return "Slots already Booked";
+        }
         return "Booking Successful";
     }
 
@@ -93,7 +92,7 @@ public class BookingServiceImpl implements BookingService {
 
     private String generateBookingId() {
         String str = generateId();
-            return str.substring(0, 6);
+        return str.substring(0, 6);
     }
 
     @Override
@@ -125,6 +124,62 @@ public class BookingServiceImpl implements BookingService {
         return "Booking is Declined";
     }
 
+    @Override
+    public VehicleBooked getBookedSlotsByVehicleNumber(String vehicleNumber) {
+        VehicleBooked vehicleBooked = new VehicleBooked();
+        Slots slots = new Slots();
+        List<BookedDates> bookedDatesList = new ArrayList<>();
+
+        try {
+            List<SlotsEntity> slotsEntityList = slotsRepo.getByVehicleNUmber(vehicleNumber);
+
+            for (SlotsEntity slotsEntity : slotsEntityList) {
+                bookedDatesList.add(new BookedDates(slotsEntity.getFromDate(), Boolean.TRUE));
+
+                List<String> inBetweenDates = generateInBetweenDates(slotsEntity.getFromDate(), slotsEntity.getToDate());
+                for (String date : inBetweenDates) {
+                    bookedDatesList.add(new BookedDates(date, Boolean.TRUE));
+                }
+
+                bookedDatesList.add(new BookedDates(slotsEntity.getToDate(), Boolean.TRUE));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        slots.setVehicleNumber(vehicleNumber);
+        slots.setDates(bookedDatesList);
+        vehicleBooked.setSlots(slots);
+        return vehicleBooked;
+    }
+
+
+
+
+    private List<String> generateInBetweenDates(String fromDate, String toDate) {
+        List<String> inBetweenDates = new ArrayList<>();
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+            Date startDate = sdf.parse(fromDate);
+            Date endDate = sdf.parse(toDate);
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(startDate);
+
+            while (calendar.getTime().before(endDate)) {
+                calendar.add(Calendar.DAY_OF_MONTH, 1);
+                Date currentDate = calendar.getTime();
+
+                if (!currentDate.equals(endDate)) {
+                    inBetweenDates.add(sdf.format(currentDate));
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return inBetweenDates;
+    }
+
     private void getVehicleDetails(BookingDetails bookingDetails) {
         VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingDetails.getSlotsPojo().getVehicleNumber());
         VehiclePojo vehiclePojo = new VehiclePojo();
@@ -142,7 +197,6 @@ public class BookingServiceImpl implements BookingService {
         slotsPojo.setVehicleNumber(slotsEntity.getVehicleNumber());
         slotsPojo.setFromDate(slotsEntity.getFromDate());
         slotsPojo.setToDate(slotsEntity.getToDate());
-        slotsPojo.setIsAvailable(slotsEntity.getIsAvailable());
         bookingDetails.setSlotsPojo(slotsPojo);
     }
 

@@ -178,7 +178,6 @@ class BookingServiceImplTest {
         slotsPojo.setVehicleNumber("ka02m1234");
         slotsPojo.setFromDate("12-02-2333");
         slotsPojo.setToDate("12-02-2333");
-        slotsPojo.setIsAvailable(true);
         bookingPojo.setSlotsPojo(slotsPojo);
 
         return bookingPojo;

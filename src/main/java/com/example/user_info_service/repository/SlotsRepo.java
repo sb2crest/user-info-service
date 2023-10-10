@@ -7,13 +7,19 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.text.ParseException;
+import java.util.List;
 
 @Repository
 public interface SlotsRepo extends JpaRepository<SlotsEntity, Long> {
 
     @Query("SELECT COUNT(s) > 0 FROM SlotsEntity s WHERE s.vehicleNumber = :vehicleNumber AND s.fromDate <= :toDate AND s.toDate >= :fromDate")
-    Boolean findVehicleAvailabilityOnRequiredDate(@Param("vehicleNumber") String vehicleNumber , @Param("fromDate") String fromDate, @Param("toDate") String toDate) throws ParseException;
+    Boolean findVehicleAvailabilityOnRequiredDate(@Param("vehicleNumber") String vehicleNumber, @Param("fromDate") String fromDate, @Param("toDate") String toDate) throws ParseException;
 
-    @Query("select s from SlotsEntity s where s.bookingId = :bookingId")
+    @Query("SELECT s FROM SlotsEntity s WHERE s.bookingId = :bookingId")
     SlotsEntity findByBookingId(String bookingId);
+
+    @Query("SELECT s FROM SlotsEntity s WHERE s.vehicleNumber = :vehicleNumber")
+    List<SlotsEntity> getByVehicleNUmber(String vehicleNumber);
+
+
 }

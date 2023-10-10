@@ -1,7 +1,6 @@
 package com.example.user_info_service.service;
 
-import com.example.user_info_service.pojo.BookingDetails;
-import com.example.user_info_service.pojo.BookingPojo;
+import com.example.user_info_service.pojo.*;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -15,4 +14,8 @@ public interface BookingService {
     String confirmBooking(String bookingId);
 
     String declineBooking(String bookingId);
+
+    VehicleBooked getBookedSlotsByVehicleNumber(String vehicleNUmber);
+
+
 }
