@@ -34,7 +34,6 @@ import javax.mail.internet.*;
 import javax.mail.util.ByteArrayDataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -46,7 +45,7 @@ import com.itextpdf.layout.properties.TextAlignment;
 
 @Service
 @PropertySource("classpath:application.properties")
-public class WeeklyReportScheduler {
+public class MonthlyReportScheduler {
 
     @Autowired
     BookingRepo bookingRepo;
@@ -85,21 +84,21 @@ public class WeeklyReportScheduler {
     private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private final String watermarkImagePath = "D:\\projects\\Vehicle-project\\user-info-service\\src\\main\\resources\\images\\LOGO1.png";
 
-    public WeeklyReportScheduler(EmailTransport emailTransport, BookingRepo bookingRepo) {
+    public MonthlyReportScheduler(EmailTransport emailTransport, BookingRepo bookingRepo) {
         this.emailTransport = emailTransport;
         this.bookingRepo = bookingRepo;
     }
 
     private boolean firstPage = true; // To check if it's the first page
 
-    @Scheduled(cron = "0 0 0 * * SUN")
-    public void sendWeeklyReportEmail() throws Exception {
+    @Scheduled(cron = "0 0 0 1 * ?")
+    public void sendMonthlyReportEmail() throws Exception {
         Session session = SessionProvider.createSession(mailHost, mailPort, emailUsername, emailPassword,
                 mailStartTlsRequired, mailStartTlsEnable, mailSocketFactoryClass, mailDebug);
 
         LocalDate currentDate = LocalDate.now();
         LocalDate yesterday = currentDate.minusDays(1);
-        LocalDate startDate = yesterday.minusWeeks(1).with(DayOfWeek.SUNDAY);
+        LocalDate startDate = yesterday.minusMonths(1);
         LocalDate endDate = yesterday;
 
         ByteArrayOutputStream outputStream = generateByteArray(startDate, endDate, currentDate);
@@ -109,15 +108,15 @@ public class WeeklyReportScheduler {
         message.setFrom(new InternetAddress(emailUsername));
         message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmailAddress));
 
-        message.setSubject("Weekly Report for " + startDate.format(format) + " to " + endDate.format(format));
+        message.setSubject("Monthly Report for " + startDate.format(format) + " to " + endDate.format(format));
 
         BodyPart messageBodyPart = new MimeBodyPart();
-        messageBodyPart.setText("Please find the weekly report attached.");
+        messageBodyPart.setText("Please find the monthly report attached.");
 
         MimeBodyPart attachmentPart = new MimeBodyPart();
         DataSource source = new ByteArrayDataSource(outputStream.toByteArray(), "application/pdf");
         attachmentPart.setDataHandler(new DataHandler(source));
-        attachmentPart.setFileName("weekly_report_" + startDate.format(format) + "_to_" + endDate.format(format) + ".pdf");
+        attachmentPart.setFileName("monthly_report_" + startDate.format(format) + "_to_" + endDate.format(format) + ".pdf");
 
         Multipart multipart = new MimeMultipart();
         multipart.addBodyPart(messageBodyPart);
@@ -131,7 +130,7 @@ public class WeeklyReportScheduler {
 
     }
 
-    ByteArrayOutputStream generateByteArray(LocalDate startDate, LocalDate endDate, LocalDate currentDate) throws IOException {
+    public ByteArrayOutputStream generateByteArray(LocalDate startDate, LocalDate endDate, LocalDate currentDate) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         PdfWriter writer = new PdfWriter(outputStream);
@@ -179,10 +178,10 @@ public class WeeklyReportScheduler {
             // Add space
             doc.add(new Paragraph().setMarginTop(20));
 
-            // Add "Weekly Report" line with the date range
-            Paragraph weeklyReportLine = new Paragraph("Weekly Report: " + startDate.format(format) + " to " + endDate.format(format) + "\n\n")
+            // Add "Monthly Report" line with the date range
+            Paragraph monthlyReportLine = new Paragraph("Monthly Report: " + startDate.format(format) + " to " + endDate.format(format) + "\n\n")
                     .setTextAlignment(TextAlignment.LEFT);
-            doc.add(weeklyReportLine);
+            doc.add(monthlyReportLine);
 
             firstPage = false; // Mark as not the first page
         }
@@ -226,6 +225,7 @@ public class WeeklyReportScheduler {
         if (hasData) {
             doc.add(bookingTable); // Add the table if there is data
         } else {
+            // No data for the entire week; remove the first (empty) page
             bookingTable.addCell(new Cell().add(new Paragraph("There is no data")));
         }
 
@@ -279,5 +279,4 @@ public class WeeklyReportScheduler {
             canvas.stroke();
         }
     }
-
 }

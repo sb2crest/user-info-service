@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,14 +98,14 @@ class OTPEntityServiceImplementationTest {
         otpEntity.setOtpPassword("12345");
         otpEntity.setMobile("1234567890");
         otpEntity.setId(1L);
-        otpEntity.setGeneratedTime("2023-02-11");
+        otpEntity.setGeneratedTime(LocalDateTime.now());
         list.add(otpEntity);
 
         OTPEntity otpEntity1 =new OTPEntity();
         otpEntity1.setOtpPassword("13345");
         otpEntity1.setMobile("123448554644");
         otpEntity1.setId(1L);
-        otpEntity1.setGeneratedTime("2023-02-11");
+        otpEntity1.setGeneratedTime(LocalDateTime.now());
         list.add(otpEntity1);
         return list;
     }

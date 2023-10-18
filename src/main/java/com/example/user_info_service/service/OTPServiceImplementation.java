@@ -14,7 +14,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 
@@ -22,7 +21,6 @@ import java.util.Random;
 @Slf4j
 public class OTPServiceImplementation implements OTPService {
     OTPRepository otpRepository;
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final String apiKey;
     private final String smsUrl;
     Random random = new Random();
@@ -39,7 +37,7 @@ public class OTPServiceImplementation implements OTPService {
 
     @Override
     public String validateSMS(ValidateOTP validateOTP) {
-        List<OTPEntity> responseOTPEntity = otpRepository.findByPhoneNumber(validateOTP.getMobile(),formatter.format(LocalDateTime.now().minusMinutes(5)));
+        List<OTPEntity> responseOTPEntity = otpRepository.findByPhoneNumber(validateOTP.getMobile(),LocalDateTime.now().minusMinutes(5));
         if (!responseOTPEntity.isEmpty() && responseOTPEntity.stream().anyMatch(o -> o.getOtpPassword().equals(validateOTP.getOtp()))) {
             return "Successfully validated";
         }
@@ -89,7 +87,7 @@ public class OTPServiceImplementation implements OTPService {
         OTPEntity otpEntity = new OTPEntity();
         otpEntity.setMobile(mobileNumber);
         otpEntity.setOtpPassword(generatedOTP);
-        otpEntity.setGeneratedTime((formatter.format(LocalDateTime.now())));
+        otpEntity.setGeneratedTime((LocalDateTime.now()));
         otpRepository.save(otpEntity);
     }
 

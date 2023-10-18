@@ -6,6 +6,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -28,10 +29,10 @@ public class BookingEntity implements Serializable {
     private String vehicleNumber;
 
     @Column(name = "from_date")
-    private String fromDate;
+    private LocalDate fromDate;
 
     @Column(name = "to_date")
-    private String toDate;
+    private LocalDate toDate;
 
     @Column(name = "mobile")
     private String mobile;
@@ -40,7 +41,7 @@ public class BookingEntity implements Serializable {
     private String bookingStatus;
 
     @Column(name = "booking_date")
-    private String bookingDate;
+    private LocalDate bookingDate;
 
     @ManyToOne
     @JoinColumn(name = "mobile",referencedColumnName = "mobile", updatable = false, insertable = false)

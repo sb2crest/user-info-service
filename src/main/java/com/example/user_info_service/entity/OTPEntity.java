@@ -6,6 +6,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 
 @Setter
@@ -29,6 +30,6 @@ public class OTPEntity implements Serializable {
     private String otpPassword;
 
     @Column(name = "generated_time")
-    private String generatedTime;
+    private LocalDateTime generatedTime;
 
 }

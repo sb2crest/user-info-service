@@ -6,6 +6,7 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.LocalDate;
 
 @Setter
 @Getter
@@ -22,10 +23,10 @@ public class SlotsEntity implements Serializable {
     private Long id;
 
     @Column(name = "from_date")
-    private String fromDate;
+    private LocalDate fromDate;
 
     @Column(name = "to_date")
-    private String toDate;
+    private LocalDate toDate;
 
     @Column(name = "is_available")
     private Boolean isAvailable;

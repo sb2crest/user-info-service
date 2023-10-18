@@ -4,6 +4,7 @@ import com.example.user_info_service.pojo.*;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
+import java.util.List;
 
 @Service
 public interface BookingService {
@@ -17,5 +18,5 @@ public interface BookingService {
 
     VehicleBooked getBookedSlotsByVehicleNumber(String vehicleNUmber);
 
-
+    List<VehiclePojo> getVehicleAvailability(VehiclesAvailable vehiclesAvailable);
 }

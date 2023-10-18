@@ -1,9 +1,7 @@
 package com.example.user_info_service.controller;
 
 import com.example.user_info_service.model.TestUtil;
-import com.example.user_info_service.pojo.BookingDetails;
-import com.example.user_info_service.pojo.BookingPojo;
-import com.example.user_info_service.pojo.UserPojo;
+import com.example.user_info_service.pojo.*;
 import com.example.user_info_service.service.BookingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +15,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -42,36 +42,14 @@ class     BookingControllerTest {
                 .build();
     }
 
-//    @Test
-//    void testBookingVehicle_ValidMobileNumber() throws Exception {
-//        BookingPojo bookingPojo = getBookingPojo();
-//        when(bookingService.bookingVehicle(Mockito.any())).thenReturn("successful");
-//        mvc.perform(post("/booking").content(TestUtil.convertObjectToJsonBytes(bookingPojo))
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk());
-//
-//    }
-
     @Test
-    void testBookingVehicle_InvalidMobileNumber() throws Exception {
+    void testBookingVehicle() throws Exception {
         BookingPojo bookingPojo = getBookingPojo();
-        bookingPojo.getUserPojo().setMobile("1234");
-        when(bookingService.bookingVehicle(Mockito.any())).thenReturn("error");
+        when(bookingService.bookingVehicle(Mockito.any())).thenReturn("successful");
         mvc.perform(post("/booking").content(TestUtil.convertObjectToJsonBytes(bookingPojo))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk());
 
-    }
-
-    @Test
-    void testBookingVehicle_EmptyMobileNumber() throws Exception {
-        BookingPojo bookingPojo = getBookingPojo();
-        bookingPojo.getUserPojo().setMobile("");
-        when(bookingService.bookingVehicle(Mockito.any())).thenReturn("error");
-        mvc.perform(post("/booking")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestUtil.convertObjectToJsonBytes(bookingPojo)))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -105,12 +83,33 @@ class     BookingControllerTest {
 
     }
 
+    @Test
+    void testGetSlotByVehicleNumber() throws Exception {
+        when(bookingService.getBookedSlotsByVehicleNumber(Mockito.any())).thenReturn(new VehicleBooked());
+
+        mvc.perform(get("/getBookedSlotsByVehicleNumber")
+                        .param("vehicleNumber", "KA07V1234")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testGetVehicleAvailability() throws Exception {
+        when(bookingService.getVehicleAvailability(Mockito.any())).thenReturn(List.of());
+
+        mvc.perform(post("/getVehicleAvailability")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(TestUtil.convertObjectToJsonBytes(new VehiclesAvailable())))
+                .andExpect(status().isOk());
+    }
+
     private BookingPojo getBookingPojo() {
         BookingPojo bookingPojo = new BookingPojo();
         bookingPojo.setVehicleNumber("ka02h0886");
         UserPojo userPojo = new UserPojo();
         userPojo.setMobile("1234456671");
         userPojo.setName("abc");
+        userPojo.setEmail("abc@gmail.com");
         bookingPojo.setUserPojo(userPojo);
         return bookingPojo;
     }

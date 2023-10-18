@@ -7,6 +7,7 @@ import com.example.user_info_service.entity.VehicleEntity;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
 import com.example.user_info_service.model.BookingStatusEnum;
+import com.example.user_info_service.model.GmailValidator;
 import com.example.user_info_service.pojo.*;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.SlotsRepo;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Component;
 
 import javax.transaction.Transactional;
 import java.text.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
@@ -35,10 +38,12 @@ public class BookingServiceImpl implements BookingService {
     VehicleInfoRepo vehicleInfoRepo;
 
     private final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+    private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Override
     @Transactional
     public String bookingVehicle(BookingPojo bookingPojo) throws ParseException {
+        checkUserDetails(bookingPojo.getUserPojo());
 
         BookingEntity bookingEntity = new BookingEntity();
         SlotsEntity slotsEntity = new SlotsEntity();
@@ -54,6 +59,19 @@ public class BookingServiceImpl implements BookingService {
         return "Booking Successful";
     }
 
+
+    private void checkUserDetails(UserPojo userPojo) {
+        if (userPojo.getMobile().isEmpty()) {
+            throw new BookingException(ResStatus.ENTER_NUMBER);
+        }
+        if (userPojo.getMobile().length() != 10) {
+            throw new BookingException(ResStatus.MOBILE_DIGIT);
+        }
+        if (userPojo.getEmail() != null && !GmailValidator.isValidGmail(userPojo.getEmail())) {
+            throw new BookingException(ResStatus.INVALID_EMAIL);
+        }
+    }
+
     private void saveBooking(BookingEntity bookingEntity, BookingPojo bookingPojo) {
         bookingEntity.setVehicleNumber(bookingPojo.getVehicleNumber());
         bookingEntity.setFromDate(bookingPojo.getFromDate());
@@ -61,7 +79,7 @@ public class BookingServiceImpl implements BookingService {
         bookingEntity.setBookingId(generateBookingId());
         bookingEntity.setMobile(bookingPojo.getUserPojo().getMobile());
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
-        bookingEntity.setBookingDate(format.format(new Date()));
+        bookingEntity.setBookingDate(LocalDate.now());
         bookingRepo.save(bookingEntity);
     }
 
@@ -130,21 +148,17 @@ public class BookingServiceImpl implements BookingService {
         Slots slots = new Slots();
         List<BookedDates> bookedDatesList = new ArrayList<>();
 
-        try {
-            List<SlotsEntity> slotsEntityList = slotsRepo.getByVehicleNUmber(vehicleNumber);
+        List<SlotsEntity> slotsEntityList = slotsRepo.getByVehicleNUmber(vehicleNumber);
 
-            for (SlotsEntity slotsEntity : slotsEntityList) {
-                bookedDatesList.add(new BookedDates(slotsEntity.getFromDate(), Boolean.TRUE));
+        for (SlotsEntity slotsEntity : slotsEntityList) {
+            bookedDatesList.add(new BookedDates(slotsEntity.getFromDate(), Boolean.TRUE));
 
-                List<String> inBetweenDates = generateInBetweenDates(slotsEntity.getFromDate(), slotsEntity.getToDate());
-                for (String date : inBetweenDates) {
-                    bookedDatesList.add(new BookedDates(date, Boolean.TRUE));
-                }
-
-                bookedDatesList.add(new BookedDates(slotsEntity.getToDate(), Boolean.TRUE));
+            List<LocalDate> inBetweenDates = generateInBetweenDates(slotsEntity.getFromDate(), slotsEntity.getToDate());
+            for (LocalDate date : inBetweenDates) {
+                bookedDatesList.add(new BookedDates(date, Boolean.TRUE));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+            bookedDatesList.add(new BookedDates(slotsEntity.getToDate(), Boolean.TRUE));
         }
 
         slots.setVehicleNumber(vehicleNumber);
@@ -153,29 +167,37 @@ public class BookingServiceImpl implements BookingService {
         return vehicleBooked;
     }
 
+    @Override
+    public List<VehiclePojo> getVehicleAvailability(VehiclesAvailable vehiclesAvailable) {
+        List<VehiclePojo> vehiclePojos = new ArrayList<>();
+        List<String> unavailableVehicleList = slotsRepo.getUnavailableList(vehiclesAvailable.getFromDate(), vehiclesAvailable.getToDate());
+        List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(unavailableVehicleList, vehiclesAvailable.getIsAC(), vehiclesAvailable.getIsSleeper());
+        getVehiclePojo(vehiclePojos, vehicleEntities);
+        return vehiclePojos;
 
+    }
 
+    private void getVehiclePojo(List<VehiclePojo> vehiclePojos, List<VehicleEntity> vehicleEntities) {
+        for (VehicleEntity vehicleEntity : vehicleEntities) {
+            VehiclePojo vehiclePojo = new VehiclePojo();
+            vehiclePojo.setSeatCapacity(vehicleEntity.getSeatCapacity());
+            vehiclePojo.setVehicleNumber(vehicleEntity.getVehicleNumber());
+            vehiclePojo.setImageUrl(vehicleEntity.getS3ImageUrl());
+            vehiclePojo.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
+            vehiclePojo.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
 
-    private List<String> generateInBetweenDates(String fromDate, String toDate) {
-        List<String> inBetweenDates = new ArrayList<>();
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-            Date startDate = sdf.parse(fromDate);
-            Date endDate = sdf.parse(toDate);
+            vehiclePojos.add(vehiclePojo);
+        }
+    }
 
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(startDate);
+    private List<LocalDate> generateInBetweenDates(LocalDate startDate, LocalDate endDate) {
+        List<LocalDate> inBetweenDates = new ArrayList<>();
 
-            while (calendar.getTime().before(endDate)) {
-                calendar.add(Calendar.DAY_OF_MONTH, 1);
-                Date currentDate = calendar.getTime();
+        LocalDate currentDate = startDate.plusDays(1); // Start from the day after the start date
 
-                if (!currentDate.equals(endDate)) {
-                    inBetweenDates.add(sdf.format(currentDate));
-                }
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
+        while (currentDate.isBefore(endDate)) {
+            inBetweenDates.add(currentDate);
+            currentDate = currentDate.plusDays(1);
         }
         return inBetweenDates;
     }
@@ -195,8 +217,8 @@ public class BookingServiceImpl implements BookingService {
         SlotsEntity slotsEntity = slotsRepo.findByBookingId(bookingId);
         SlotsPojo slotsPojo = new SlotsPojo();
         slotsPojo.setVehicleNumber(slotsEntity.getVehicleNumber());
-        slotsPojo.setFromDate(slotsEntity.getFromDate());
-        slotsPojo.setToDate(slotsEntity.getToDate());
+        slotsPojo.setFromDate(localDateFormat.format(slotsEntity.getFromDate()));
+        slotsPojo.setToDate(localDateFormat.format(slotsEntity.getToDate()));
         bookingDetails.setSlotsPojo(slotsPojo);
     }
 
