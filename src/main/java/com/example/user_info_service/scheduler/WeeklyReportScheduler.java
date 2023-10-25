@@ -10,15 +10,13 @@ import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.events.Event;
 import com.itextpdf.kernel.events.IEventHandler;
 import com.itextpdf.kernel.events.PdfDocumentEvent;
-import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.geom.Rectangle;
-import com.itextpdf.kernel.pdf.PdfDocument;
-import com.itextpdf.kernel.pdf.PdfPage;
-import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.kernel.pdf.*;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.element.*;
+import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,7 +40,6 @@ import java.util.List;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
-import com.itextpdf.layout.properties.TextAlignment;
 
 @Service
 @PropertySource("classpath:application.properties")
@@ -83,33 +80,29 @@ public class WeeklyReportScheduler {
     private boolean mailDebug;
 
     private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private final String watermarkImagePath = "D:\\projects\\Vehicle-project\\user-info-service\\src\\main\\resources\\images\\LOGO1.png";
+    private final String watermarkImagePath = "D:\\projects\\Vehicle-project\\user-info-service\\src\\main\\resources\\images\\LOGO.png";
 
     public WeeklyReportScheduler(EmailTransport emailTransport, BookingRepo bookingRepo) {
         this.emailTransport = emailTransport;
         this.bookingRepo = bookingRepo;
     }
 
-    private boolean firstPage = true; // To check if it's the first page
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void sendWeeklyReportEmail() throws MessagingException, IOException {
 
-    @Scheduled(cron = "0 0 0 * * SUN")
-    public void sendWeeklyReportEmail() throws Exception {
         Session session = SessionProvider.createSession(mailHost, mailPort, emailUsername, emailPassword,
                 mailStartTlsRequired, mailStartTlsEnable, mailSocketFactoryClass, mailDebug);
 
-        LocalDate currentDate = LocalDate.now();
-        LocalDate yesterday = currentDate.minusDays(1);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
         LocalDate startDate = yesterday.minusWeeks(1).with(DayOfWeek.SUNDAY);
-        LocalDate endDate = yesterday;
 
-        ByteArrayOutputStream outputStream = generateByteArray(startDate, endDate, currentDate);
+        ByteArrayOutputStream outputStream = generateByteArray(startDate, yesterday);
 
         MimeMessage message = new MimeMessage(session);
-
         message.setFrom(new InternetAddress(emailUsername));
         message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmailAddress));
 
-        message.setSubject("Weekly Report for " + startDate.format(format) + " to " + endDate.format(format));
+        message.setSubject("Weekly Report for " + startDate.format(format) + " to " + yesterday.format(format));
 
         BodyPart messageBodyPart = new MimeBodyPart();
         messageBodyPart.setText("Please find the weekly report attached.");
@@ -117,7 +110,7 @@ public class WeeklyReportScheduler {
         MimeBodyPart attachmentPart = new MimeBodyPart();
         DataSource source = new ByteArrayDataSource(outputStream.toByteArray(), "application/pdf");
         attachmentPart.setDataHandler(new DataHandler(source));
-        attachmentPart.setFileName("weekly_report_" + startDate.format(format) + "_to_" + endDate.format(format) + ".pdf");
+        attachmentPart.setFileName("weekly_report_" + startDate.format(format) + "_to_" + yesterday.format(format) + ".pdf");
 
         Multipart multipart = new MimeMultipart();
         multipart.addBodyPart(messageBodyPart);
@@ -127,116 +120,100 @@ public class WeeklyReportScheduler {
 
         emailTransport.send(message);
 
-        System.out.println("Email sent successfully for " + startDate.format(format) + " to " + endDate.format(format));
+        System.out.println("Email sent successfully for " + startDate.format(format) + " to " + yesterday.format(format));
 
     }
 
-    ByteArrayOutputStream generateByteArray(LocalDate startDate, LocalDate endDate, LocalDate currentDate) throws IOException {
+    ByteArrayOutputStream generateByteArray(LocalDate startDate, LocalDate endDate) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         PdfWriter writer = new PdfWriter(outputStream);
         PdfDocument pdfDoc = new PdfDocument(writer);
-        pdfDoc.setDefaultPageSize(PageSize.A4); // Set the default page size
-
         PdfFont font = PdfFontFactory.createFont(StandardFonts.COURIER_BOLD);
         Document doc = new Document(pdfDoc).setFont(font);
 
         // Set border properties
         Color borderColor = new DeviceRgb(0, 0, 0); // Border color
         float borderWidth = 2f; // Border width (adjust as needed)
+
+        // Set header and footer properties for all pages
         pdfDoc.addEventHandler(PdfDocumentEvent.START_PAGE, new HeaderFooterEventHandler(borderColor, borderWidth));
+        List<BookingEntity> bookingEntityList = bookingRepo.getReportForWeeklyAndMonthly(startDate,endDate);
 
-        // Add watermark image and company details on the first page
-        if (firstPage) {
-            Table companyDetailsTable = new Table(UnitValue.createPercentArray(new float[]{4, 1})); // Adjust the array values
-            companyDetailsTable.setWidth(UnitValue.createPercentValue(100));
+        // Create a table for company details and watermark image
+        Table companyDetailsTable = new Table(UnitValue.createPercentArray(new float[]{5, 1}));
+        companyDetailsTable.setWidth(UnitValue.createPercentValue(100));
 
-            PdfFont companyFont = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+        PdfFont companyFont = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+        Paragraph companyParagraph = new Paragraph()
+                .add("\n")
+                .add(new Text("NANDU BUS").setFont(companyFont).setFontSize(20)) // Set font size to 20px
+                .add("\n") // Add a new line
+                .add(new Text("Yelahanka New Town, Bangaluru, 560064 \n\n\n").setFont(companyFont).setFontSize(10)); // Set font size to 10px
 
-            // Create a cell for "Nandu Tours & Travels" text
-            Cell textCell = new Cell();
-            Paragraph companyParagraph = new Paragraph()
-                    .add("\n")
-                    .add(new Text("NANDU TOURS & TRAVELS").setFont(companyFont).setFontSize(20)) // Set font size to 20px
-                    .add("\n") // Add a new line
-                    .add(new Text("Yelahanka New Town, Bangalore, 560064\n\n\n").setFont(companyFont).setFontSize(10)); // Set font size to 10px
-            textCell.add(companyParagraph).setTextAlignment(TextAlignment.CENTER).setBorder(Border.NO_BORDER).setMarginTop(20f);
+        companyDetailsTable.addCell(new Cell().add(companyParagraph).setTextAlignment(TextAlignment.CENTER).setBorder(Border.NO_BORDER).setMarginTop(20f));
 
-            // Create a cell for the logo (image) with margin
-            Cell logoCell = new Cell();
-            Image watermarkImage = new Image(ImageDataFactory.create(watermarkImagePath));
-            watermarkImage.setWidth(UnitValue.createPointValue(100));
-            logoCell.add(watermarkImage).setBorder(Border.NO_BORDER).setMarginRight(20f).setTextAlignment(TextAlignment.RIGHT); // Adjust the margin as needed
+        // Add watermark image to the top-right corner with a negative right margin
+        Image watermarkImage = new Image(ImageDataFactory.create(watermarkImagePath));
+        watermarkImage.setWidth(UnitValue.createPointValue(100));
 
-            companyDetailsTable.addCell(textCell);
-            companyDetailsTable.addCell(logoCell);
-
-            float pageWidth = doc.getPdfDocument().getDefaultPageSize().getWidth();
-            companyDetailsTable.setMarginTop(1 * pageWidth / 100);
-
-            doc.add(companyDetailsTable);
-
-            // Add space
-            doc.add(new Paragraph().setMarginTop(20));
-
-            // Add "Weekly Report" line with the date range
-            Paragraph weeklyReportLine = new Paragraph("Weekly Report: " + startDate.format(format) + " to " + endDate.format(format) + "\n\n")
-                    .setTextAlignment(TextAlignment.LEFT);
-            doc.add(weeklyReportLine);
-
-            firstPage = false; // Mark as not the first page
-        }
+        companyDetailsTable.addCell(new Cell().add(watermarkImage).setBorder(Border.NO_BORDER).setMarginTop(20f).setTextAlignment(TextAlignment.RIGHT));
+        doc.add(companyDetailsTable);
 
         // Create a table for the Booking Date
-        float[] bookingInfoColumnWidths = {140, 140, 140, 140, 140, 140, 140};
-        Table bookingTable = new Table(bookingInfoColumnWidths);
-        bookingTable.setTextAlignment(TextAlignment.CENTER);
+        Table dateTable = new Table(1);
+        dateTable.setWidth(400);
 
-        // Add table headers
-        bookingTable.addCell(new Cell().add(new Paragraph("ID")));
-        bookingTable.addCell(new Cell().add(new Paragraph("Booking ID")));
-        bookingTable.addCell(new Cell().add(new Paragraph("Vehicle Number")));
-        bookingTable.addCell(new Cell().add(new Paragraph("From Date")));
-        bookingTable.addCell(new Cell().add(new Paragraph("To Date")));
-        bookingTable.addCell(new Cell().add(new Paragraph("Booking Status")));
-        bookingTable.addCell(new Cell().add(new Paragraph("Booking Date")));
+        Paragraph dateParagraph = new Paragraph();
+        dateParagraph.add("Report from " + startDate.format(format) + " to " + endDate.format(format));
+        if (!bookingEntityList.isEmpty()) {
+            dateParagraph.add("\n\n");
 
-        boolean hasData = false; // Flag to track if there is data in the report
+            dateTable.addCell(new Cell().add(dateParagraph)
+                    .setTextAlignment(TextAlignment.LEFT)
+                    .setBorder(Border.NO_BORDER));
 
-        while (!startDate.isAfter(endDate)) {
-            List<BookingEntity> bookingEntityList = bookingRepo.getReport(startDate);
+            doc.add(dateTable);
 
-            if (!bookingEntityList.isEmpty()) { // Check if there is data for this date
-                hasData = true; // Set the flag to true
-                for (BookingEntity entity : bookingEntityList) {
-                    // Add data rows to the table
-                    bookingTable.addCell(new Cell().add(new Paragraph(String.valueOf(entity.getId()))));
-                    bookingTable.addCell(new Cell().add(new Paragraph(entity.getBookingId())));
-                    bookingTable.addCell(new Cell().add(new Paragraph(entity.getVehicleNumber())));
-                    bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getFromDate()))));
-                    bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getToDate()))));
-                    bookingTable.addCell(new Cell().add(new Paragraph(BookingStatusEnum.getDesc(entity.getBookingStatus()))));
-                    bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getBookingDate()))));
-                }
+            float[] bookingInfoColumnWidths = {130, 130, 145, 150, 150, 130};
+            Table bookingTable = new Table(bookingInfoColumnWidths);
+            bookingTable.setTextAlignment(TextAlignment.CENTER);
+            bookingTable.addCell(new Cell().add(new Paragraph("Booking ID")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Vehicle Number")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Booked Date")));
+            bookingTable.addCell(new Cell().add(new Paragraph("From Date")));
+            bookingTable.addCell(new Cell().add(new Paragraph("To Date")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Booking Status")));
+
+
+            for (BookingEntity entity : bookingEntityList) {
+                bookingTable.addCell(new Cell().add(new Paragraph(entity.getBookingId())));
+                bookingTable.addCell(new Cell().add(new Paragraph(entity.getVehicleNumber())));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getBookingDate()))));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getFromDate()))));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getToDate()))));
+                bookingTable.addCell(new Cell().add(new Paragraph(BookingStatusEnum.getDesc(entity.getBookingStatus()))));
+
             }
 
-            startDate = startDate.plusDays(1);
-        }
-
-        if (hasData) {
-            doc.add(bookingTable); // Add the table if there is data
+            doc.add(bookingTable);
         } else {
-            bookingTable.addCell(new Cell().add(new Paragraph("There is no data")));
-        }
+            dateParagraph.add("\n\n There are no Booking on these dates ");
+            dateTable.addCell(new Cell().add(dateParagraph)
+                    .setTextAlignment(TextAlignment.LEFT)
+                    .setBorder(Border.NO_BORDER));
 
+            doc.add(dateTable);
+        }
         writer.close();
         pdfDoc.close();
         doc.close();
 
+        System.out.println("PDF generated successfully.");
         return outputStream;
     }
 
-    public class HeaderFooterEventHandler implements IEventHandler {
+    class HeaderFooterEventHandler implements IEventHandler {
         private Color borderColor;
         private float borderWidth;
 
@@ -251,8 +228,10 @@ public class WeeklyReportScheduler {
             PdfDocument pdfDoc = docEvent.getDocument();
             PdfPage page = docEvent.getPage();
 
+            // Create a Document object for the page
             Document doc = new Document(pdfDoc);
 
+            // Draw borders on the left and right sides of the page
             PdfCanvas canvas = new PdfCanvas(page.newContentStreamAfter(), page.getResources(), pdfDoc);
             Rectangle pageSize = page.getPageSize();
             float leftX = pageSize.getLeft() + 10 + borderWidth / 2;
@@ -260,24 +239,27 @@ public class WeeklyReportScheduler {
             float topY = pageSize.getTop() - 25 - borderWidth / 2;
             float bottomY = pageSize.getBottom() + 25 + borderWidth / 2;
 
+            // Draw top border line
             canvas.setStrokeColor(borderColor);
             canvas.setLineWidth(borderWidth);
             canvas.moveTo(leftX, topY);
             canvas.lineTo(rightX, topY);
             canvas.stroke();
 
+            // Draw left border line
             canvas.moveTo(leftX, topY);
             canvas.lineTo(leftX, bottomY);
             canvas.stroke();
 
+            // Draw right border line
             canvas.moveTo(rightX, topY);
             canvas.lineTo(rightX, bottomY);
             canvas.stroke();
 
+            // Draw bottom border line
             canvas.moveTo(leftX, bottomY);
             canvas.lineTo(rightX, bottomY);
             canvas.stroke();
         }
     }
-
 }

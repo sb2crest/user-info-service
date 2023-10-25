@@ -1,8 +1,6 @@
 package com.example.user_info_service.controller;
 
-import com.example.user_info_service.scheduler.DailyReportScheduler;
-import com.example.user_info_service.scheduler.MonthlyReportScheduler;
-import com.example.user_info_service.scheduler.WeeklyReportScheduler;
+import com.example.user_info_service.scheduler.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +29,9 @@ class SchedulerControllerTest {
     @MockBean
     MonthlyReportScheduler monthlyReportScheduler;
 
+    @MockBean
+    TomorrowsBooking tomorrowsBooking;
+
     @Autowired
     WebApplicationContext webApplicationContext;
 
@@ -45,12 +46,35 @@ class SchedulerControllerTest {
     }
 
     @Test
-    void getReport() throws Exception {
+    void getDailyReport() throws Exception {
         Mockito.doNothing().when(dailyReportScheduler).sendDailyReportEmail();
-        Mockito.doNothing().when(weeklyReportScheduler).sendWeeklyReportEmail();
-        Mockito.doNothing().when(monthlyReportScheduler).sendMonthlyReportEmail();
 
-        mvc.perform(get("/report"))
+        mvc.perform(get("/dailyReport"))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void getWeeklyReport() throws Exception {
+        Mockito.doNothing().when(weeklyReportScheduler).sendWeeklyReportEmail();
+
+        mvc.perform(get("/weeklyReport"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getMonthlyReport() throws Exception {
+        Mockito.doNothing().when(monthlyReportScheduler).sendMonthlyReportEmail();
+
+        mvc.perform(get("/monthlyReport"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getTomorrowsReport() throws Exception {
+        Mockito.doNothing().when(tomorrowsBooking).tomorrowsBookingDetails();
+
+        mvc.perform(get("/tomorrowsBooking"))
+                .andExpect(status().isOk());
+    }
+
 }

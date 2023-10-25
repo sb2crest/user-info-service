@@ -103,6 +103,17 @@ class     BookingControllerTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    void getBookingInfoByBookingIdTest() throws Exception {
+        when(bookingService.getBookingInfoByBookingId("456")).thenReturn(new BookingInfo());
+
+        mvc.perform(get("/getBookingInfoByBookingId")
+                        .param("bookingId", "456")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+    }
+
     private BookingPojo getBookingPojo() {
         BookingPojo bookingPojo = new BookingPojo();
         bookingPojo.setVehicleNumber("ka02h0886");

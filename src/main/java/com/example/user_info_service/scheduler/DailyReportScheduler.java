@@ -80,7 +80,7 @@ public class DailyReportScheduler {
     private boolean mailDebug;
 
     private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private final String watermarkImagePath = "D:\\projects\\Vehicle-project\\user-info-service\\src\\main\\resources\\images\\LOGO1.png";
+    private final String watermarkImagePath = "D:\\projects\\Vehicle-project\\user-info-service\\src\\main\\resources\\images\\LOGO.png";
 
     public DailyReportScheduler(EmailTransport emailTransport, BookingRepo bookingRepo) {
         this.emailTransport = emailTransport;
@@ -142,7 +142,7 @@ public class DailyReportScheduler {
         PdfFont companyFont = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
         Paragraph companyParagraph = new Paragraph()
                 .add("\n")
-                .add(new Text("NANDU TOURS & TRAVELS").setFont(companyFont).setFontSize(20)) // Set font size to 20px
+                .add(new Text("NANDU BUS").setFont(companyFont).setFontSize(20)) // Set font size to 20px
                 .add("\n") // Add a new line
                 .add(new Text("Yelahanka New Town, Bangaluru, 560064 \n\n\n").setFont(companyFont).setFontSize(10)); // Set font size to 10px
 
@@ -171,23 +171,25 @@ public class DailyReportScheduler {
 
             doc.add(dateTable);
 
-            float[] bookingInfoColumnWidths = {140, 140, 140, 140, 140, 140};
+            float[] bookingInfoColumnWidths = {130, 130, 145, 150, 150, 130};
             Table bookingTable = new Table(bookingInfoColumnWidths);
             bookingTable.setTextAlignment(TextAlignment.CENTER);
-            bookingTable.addCell(new Cell().add(new Paragraph("ID")));
             bookingTable.addCell(new Cell().add(new Paragraph("Booking ID")));
             bookingTable.addCell(new Cell().add(new Paragraph("Vehicle Number")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Booked Date")));
             bookingTable.addCell(new Cell().add(new Paragraph("From Date")));
             bookingTable.addCell(new Cell().add(new Paragraph("To Date")));
             bookingTable.addCell(new Cell().add(new Paragraph("Booking Status")));
 
+
             for (BookingEntity entity : bookingEntityList) {
-                bookingTable.addCell(new Cell().add(new Paragraph(String.valueOf(entity.getId()))));
                 bookingTable.addCell(new Cell().add(new Paragraph(entity.getBookingId())));
                 bookingTable.addCell(new Cell().add(new Paragraph(entity.getVehicleNumber())));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getBookingDate()))));
                 bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getFromDate()))));
                 bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getToDate()))));
                 bookingTable.addCell(new Cell().add(new Paragraph(BookingStatusEnum.getDesc(entity.getBookingStatus()))));
+
             }
 
             doc.add(bookingTable);

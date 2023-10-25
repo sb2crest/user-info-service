@@ -34,4 +34,16 @@ public class VehicleEntity implements Serializable {
 
     @Column(name = "is_sleeper")
     private Boolean isVehicleSleeper;
+
+    @Column(name = "driver_name")
+    private String driverName;
+
+    @Column(name = "driver_number")
+    private String driverNumber;
+
+    @Column(name = "alternative_number")
+    private String alternateNumber;
+
+    @Column(name = "emergency_contact_number")
+    private String emergencyNumber;
 }

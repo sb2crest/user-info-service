@@ -6,10 +6,12 @@ import com.example.user_info_service.model.EmailTransport;
 import com.example.user_info_service.repository.BookingRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.mail.Session;
@@ -22,6 +24,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.times;
 
+@ExtendWith(SpringExtension.class)
 class MonthlyReportSchedulerTest {
 
     @InjectMocks
@@ -56,7 +59,7 @@ class MonthlyReportSchedulerTest {
     @Test
     void testSendWeeklyReportEmail() throws Exception {
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
-        when(bookingRepo.getReport(any())).thenReturn(List.of(getBookingEntity()));
+        when(bookingRepo.getReportForWeeklyAndMonthly(any(),any())).thenReturn(List.of(getBookingEntity()));
         doNothing().when(mailSender).send(any(MimeMessage.class));
         doNothing().when(emailTransport).send(any(MimeMessage.class));
         scheduler.sendMonthlyReportEmail();
@@ -66,9 +69,8 @@ class MonthlyReportSchedulerTest {
 
     @Test
     public void sendMonthlyReportEmailWhenThereWereNoBooking() throws Exception {
-        ReflectionTestUtils.setField(scheduler, "firstPage", false);
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
-        when(bookingRepo.getReport(any())).thenReturn(new ArrayList<>());
+        when(bookingRepo.getReportForWeeklyAndMonthly(any(),any())).thenReturn(new ArrayList<>());
         doNothing().when(mailSender).send(any(MimeMessage.class));
         doNothing().when(emailTransport).send(any(MimeMessage.class));
         scheduler.sendMonthlyReportEmail();

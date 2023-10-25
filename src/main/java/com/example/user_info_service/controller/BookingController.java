@@ -18,37 +18,38 @@ public class BookingController {
     BookingService bookingService;
 
     @PostMapping("/booking")
-    ResponseEntity<String> bookingVehicle(@RequestBody BookingPojo bookingPojo) throws ParseException {
+    public ResponseEntity<String> bookingVehicle(@RequestBody BookingPojo bookingPojo) throws ParseException {
         return new ResponseEntity<>(bookingService.bookingVehicle(bookingPojo), HttpStatus.OK);
     }
 
     @GetMapping("/bookingDetails")
-    ResponseEntity<BookingDetails> getBookingDetails(@RequestParam("bookingId") String bookingId)  {
+    public ResponseEntity<BookingDetails> getBookingDetails(@RequestParam("bookingId") String bookingId)  {
         return new ResponseEntity<>(bookingService.getBookingDetails(bookingId), HttpStatus.OK);
     }
 
     @GetMapping("/confirm")
-    ResponseEntity<String> confirmBooking(@RequestParam("bookingId") String bookingId) {
+    public ResponseEntity<String> confirmBooking(@RequestParam("bookingId") String bookingId) {
         return new ResponseEntity<>(bookingService.confirmBooking(bookingId), HttpStatus.OK);
     }
 
     @GetMapping("/decline")
-    ResponseEntity<String> declineBooking(@RequestParam("bookingId") String bookingId) {
-
+    public ResponseEntity<String> declineBooking(@RequestParam("bookingId") String bookingId) {
         return new ResponseEntity<>(bookingService.declineBooking(bookingId), HttpStatus.OK);
     }
 
     @GetMapping("/getBookedSlotsByVehicleNumber")
-    ResponseEntity<VehicleBooked> getBookedSlotsByVehicleNumber(@RequestParam("vehicleNumber") String vehicleNUmber) {
-        VehicleBooked vehicleBooked = bookingService.getBookedSlotsByVehicleNumber(vehicleNUmber);
+    public ResponseEntity<VehicleBooked> getBookedSlotsByVehicleNumber(@RequestParam("vehicleNumber") String vehicleNumber) {
+        VehicleBooked vehicleBooked = bookingService.getBookedSlotsByVehicleNumber(vehicleNumber);
         return new ResponseEntity<>(vehicleBooked, HttpStatus.OK);
     }
 
     @PostMapping("/getVehicleAvailability")
-    ResponseEntity<List<VehiclePojo>> getVehicleAvailability(@RequestBody VehiclesAvailable vehiclesAvailable) {
+    public ResponseEntity<List<VehiclePojo>> getVehicleAvailability(@RequestBody VehiclesAvailable vehiclesAvailable) {
         List<VehiclePojo> vehiclePojo = bookingService.getVehicleAvailability(vehiclesAvailable);
         return new ResponseEntity<>(vehiclePojo, HttpStatus.OK);
     }
-
-
+    @GetMapping("/getBookingInfoByBookingId")
+    public ResponseEntity<BookingInfo> getBookingInfoByBookingId(@RequestParam("bookingId") String bookingId) {
+        return new ResponseEntity<>(bookingService.getBookingInfoByBookingId(bookingId), HttpStatus.OK);
+    }
 }

@@ -15,7 +15,7 @@ import com.example.user_info_service.repository.UserRepo;
 import com.example.user_info_service.repository.VehicleInfoRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.text.*;
@@ -24,7 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 
-@Component
+@Service
 @Slf4j
 public class BookingServiceImpl implements BookingService {
 
@@ -37,7 +37,6 @@ public class BookingServiceImpl implements BookingService {
     @Autowired
     VehicleInfoRepo vehicleInfoRepo;
 
-    private final SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
     private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Override
@@ -105,7 +104,7 @@ public class BookingServiceImpl implements BookingService {
 
     private String generateId() {
         UUID uuid = UUID.randomUUID();
-        return "NT" + uuid;
+        return "NB" + uuid;
     }
 
     private String generateBookingId() {
@@ -116,9 +115,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDetails getBookingDetails(String bookingId) {
         BookingEntity bookingEntity = bookingRepo.getByBookingId(bookingId);
-        if (bookingEntity == null) {
-            throw new BookingException(ResStatus.BOOKING_ID_NOT_FOUND);
-        }
+        validateBookingEntity(bookingEntity);
         BookingDetails bookingDetails = new BookingDetails();
         getUser(bookingEntity, bookingDetails);
         getSlot(bookingId, bookingDetails);
@@ -127,8 +124,31 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    public BookingInfo getBookingInfoByBookingId(String bookingId) {
+
+        BookingEntity bookingEntity = bookingRepo.getByBookingId(bookingId);
+        validateBookingEntity(bookingEntity);
+        VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingEntity.getVehicleNumber());
+
+        return getBookingInfo(vehicleEntity, bookingEntity);
+    }
+
+    private BookingInfo getBookingInfo(VehicleEntity vehicleEntity, BookingEntity bookingEntity) {
+        BookingInfo bookingInfo = new BookingInfo();
+        bookingInfo.setVehicleNumber(bookingEntity.getVehicleNumber());
+        bookingInfo.setToDate(localDateFormat.format(bookingEntity.getToDate()));
+        bookingInfo.setFromDate(localDateFormat .format(bookingEntity.getFromDate()));
+        bookingInfo.setBookingDate(bookingEntity.getBookingDate());
+        bookingInfo.setDriverName(vehicleEntity.getDriverName());
+        bookingInfo.setDriverNumber(vehicleEntity.getDriverNumber());
+        bookingInfo.setAlternateNumber(vehicleEntity.getAlternateNumber());
+        return bookingInfo;
+    }
+
+    @Override
     public String confirmBooking(String bookingId) {
         BookingEntity bookingEntity = bookingRepo.getByBookingId(bookingId);
+        validateBookingEntity(bookingEntity);
         bookingEntity.setBookingStatus(BookingStatusEnum.CONFIRMED.getCode());
         bookingRepo.save(bookingEntity);
         return "Booking is Confirmed";
@@ -137,6 +157,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public String declineBooking(String bookingId) {
         BookingEntity bookingEntity = bookingRepo.getByBookingId(bookingId);
+        validateBookingEntity(bookingEntity);
         bookingEntity.setBookingStatus(BookingStatusEnum.DECLINED.getCode());
         bookingRepo.save(bookingEntity);
         return "Booking is Declined";
@@ -193,7 +214,7 @@ public class BookingServiceImpl implements BookingService {
     private List<LocalDate> generateInBetweenDates(LocalDate startDate, LocalDate endDate) {
         List<LocalDate> inBetweenDates = new ArrayList<>();
 
-        LocalDate currentDate = startDate.plusDays(1); // Start from the day after the start date
+        LocalDate currentDate = startDate.plusDays(1);
 
         while (currentDate.isBefore(endDate)) {
             inBetweenDates.add(currentDate);
@@ -204,6 +225,7 @@ public class BookingServiceImpl implements BookingService {
 
     private void getVehicleDetails(BookingDetails bookingDetails) {
         VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingDetails.getSlotsPojo().getVehicleNumber());
+        validateVehicleEntity(vehicleEntity);
         VehiclePojo vehiclePojo = new VehiclePojo();
         vehiclePojo.setVehicleNumber(vehicleEntity.getVehicleNumber());
         vehiclePojo.setSeatCapacity(vehicleEntity.getSeatCapacity());
@@ -215,6 +237,7 @@ public class BookingServiceImpl implements BookingService {
 
     private void getSlot(String bookingId, BookingDetails bookingDetails) {
         SlotsEntity slotsEntity = slotsRepo.findByBookingId(bookingId);
+        validateSlotEntity(slotsEntity);
         SlotsPojo slotsPojo = new SlotsPojo();
         slotsPojo.setVehicleNumber(slotsEntity.getVehicleNumber());
         slotsPojo.setFromDate(localDateFormat.format(slotsEntity.getFromDate()));
@@ -224,6 +247,7 @@ public class BookingServiceImpl implements BookingService {
 
     private void getUser(BookingEntity bookingEntity, BookingDetails bookingDetails) {
         UserEntity user = userRepo.getUserByMobileNumber(bookingEntity.getMobile());
+        validateUserEntity(user);
         UserPojo userPojo = new UserPojo();
         userPojo.setMobile(user.getMobile());
         userPojo.setName(user.getName());
@@ -231,4 +255,27 @@ public class BookingServiceImpl implements BookingService {
         bookingDetails.setUserPojo(userPojo);
     }
 
+    private void validateBookingEntity(BookingEntity bookingEntity) {
+        if (bookingEntity == null ) {
+            throw new BookingException(ResStatus.BOOKING_NOT_FOUND);
+        }
+    }
+
+    private void validateVehicleEntity(VehicleEntity vehicleEntity) {
+        if (vehicleEntity == null ) {
+            throw new BookingException(ResStatus.VEHICLE_NOT_FOUND);
+        }
+    }
+
+    private void validateUserEntity(UserEntity userEntity) {
+        if (userEntity == null ) {
+            throw new BookingException(ResStatus.USER_NOT_FOUND);
+        }
+    }
+
+    private void validateSlotEntity(SlotsEntity slotsEntity) {
+        if (slotsEntity == null ) {
+            throw new BookingException(ResStatus.SLOTS_NOT_FOUND);
+        }
+    }
 }

@@ -1,12 +1,10 @@
 package com.example.user_info_service.service;
 
 import com.example.user_info_service.pojo.*;
-import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
 import java.util.List;
 
-@Service
 public interface BookingService {
     String bookingVehicle(BookingPojo bookingPojo) throws ParseException;
 
@@ -19,4 +17,6 @@ public interface BookingService {
     VehicleBooked getBookedSlotsByVehicleNumber(String vehicleNUmber);
 
     List<VehiclePojo> getVehicleAvailability(VehiclesAvailable vehiclesAvailable);
+
+    BookingInfo getBookingInfoByBookingId(String bookingId);
 }

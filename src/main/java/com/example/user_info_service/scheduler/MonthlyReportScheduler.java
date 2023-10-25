@@ -82,14 +82,12 @@ public class MonthlyReportScheduler {
     private boolean mailDebug;
 
     private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private final String watermarkImagePath = "D:\\projects\\Vehicle-project\\user-info-service\\src\\main\\resources\\images\\LOGO1.png";
+    private final String watermarkImagePath = "D:\\projects\\Vehicle-project\\user-info-service\\src\\main\\resources\\images\\LOGO.png";
 
     public MonthlyReportScheduler(EmailTransport emailTransport, BookingRepo bookingRepo) {
         this.emailTransport = emailTransport;
         this.bookingRepo = bookingRepo;
     }
-
-    private boolean firstPage = true; // To check if it's the first page
 
     @Scheduled(cron = "0 0 0 1 * ?")
     public void sendMonthlyReportEmail() throws Exception {
@@ -99,16 +97,15 @@ public class MonthlyReportScheduler {
         LocalDate currentDate = LocalDate.now();
         LocalDate yesterday = currentDate.minusDays(1);
         LocalDate startDate = yesterday.minusMonths(1);
-        LocalDate endDate = yesterday;
 
-        ByteArrayOutputStream outputStream = generateByteArray(startDate, endDate, currentDate);
+        ByteArrayOutputStream outputStream = generateByteArray(startDate, yesterday);
 
         MimeMessage message = new MimeMessage(session);
 
         message.setFrom(new InternetAddress(emailUsername));
         message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmailAddress));
 
-        message.setSubject("Monthly Report for " + startDate.format(format) + " to " + endDate.format(format));
+        message.setSubject("Monthly Report for " + startDate.format(format) + " to " + yesterday.format(format));
 
         BodyPart messageBodyPart = new MimeBodyPart();
         messageBodyPart.setText("Please find the monthly report attached.");
@@ -116,7 +113,7 @@ public class MonthlyReportScheduler {
         MimeBodyPart attachmentPart = new MimeBodyPart();
         DataSource source = new ByteArrayDataSource(outputStream.toByteArray(), "application/pdf");
         attachmentPart.setDataHandler(new DataHandler(source));
-        attachmentPart.setFileName("monthly_report_" + startDate.format(format) + "_to_" + endDate.format(format) + ".pdf");
+        attachmentPart.setFileName("monthly_report_" + startDate.format(format) + "_to_" + yesterday.format(format) + ".pdf");
 
         Multipart multipart = new MimeMultipart();
         multipart.addBodyPart(messageBodyPart);
@@ -126,115 +123,99 @@ public class MonthlyReportScheduler {
 
         emailTransport.send(message);
 
-        System.out.println("Email sent successfully for " + startDate.format(format) + " to " + endDate.format(format));
+        System.out.println("Email sent successfully for " + startDate.format(format) + " to " + yesterday.format(format));
 
     }
 
-    public ByteArrayOutputStream generateByteArray(LocalDate startDate, LocalDate endDate, LocalDate currentDate) throws IOException {
+    ByteArrayOutputStream generateByteArray(LocalDate startDate, LocalDate endDate) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         PdfWriter writer = new PdfWriter(outputStream);
         PdfDocument pdfDoc = new PdfDocument(writer);
-        pdfDoc.setDefaultPageSize(PageSize.A4); // Set the default page size
-
         PdfFont font = PdfFontFactory.createFont(StandardFonts.COURIER_BOLD);
         Document doc = new Document(pdfDoc).setFont(font);
 
         // Set border properties
         Color borderColor = new DeviceRgb(0, 0, 0); // Border color
         float borderWidth = 2f; // Border width (adjust as needed)
-        pdfDoc.addEventHandler(PdfDocumentEvent.START_PAGE, new HeaderFooterEventHandler(borderColor, borderWidth));
 
-        // Add watermark image and company details on the first page
-        if (firstPage) {
-            Table companyDetailsTable = new Table(UnitValue.createPercentArray(new float[]{4, 1})); // Adjust the array values
-            companyDetailsTable.setWidth(UnitValue.createPercentValue(100));
+        // Set header and footer properties for all pages
+        pdfDoc.addEventHandler(PdfDocumentEvent.START_PAGE, new MonthlyReportScheduler.HeaderFooterEventHandler(borderColor, borderWidth));
+        List<BookingEntity> bookingEntityList = bookingRepo.getReportForWeeklyAndMonthly(startDate,endDate);
 
-            PdfFont companyFont = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+        // Create a table for company details and watermark image
+        Table companyDetailsTable = new Table(UnitValue.createPercentArray(new float[]{5, 1}));
+        companyDetailsTable.setWidth(UnitValue.createPercentValue(100));
 
-            // Create a cell for "Nandu Tours & Travels" text
-            Cell textCell = new Cell();
-            Paragraph companyParagraph = new Paragraph()
-                    .add("\n")
-                    .add(new Text("NANDU TOURS & TRAVELS").setFont(companyFont).setFontSize(20)) // Set font size to 20px
-                    .add("\n") // Add a new line
-                    .add(new Text("Yelahanka New Town, Bangalore, 560064\n\n\n").setFont(companyFont).setFontSize(10)); // Set font size to 10px
-            textCell.add(companyParagraph).setTextAlignment(TextAlignment.CENTER).setBorder(Border.NO_BORDER).setMarginTop(20f);
+        PdfFont companyFont = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
+        Paragraph companyParagraph = new Paragraph()
+                .add("\n")
+                .add(new Text("NANDU BUS").setFont(companyFont).setFontSize(20)) // Set font size to 20px
+                .add("\n") // Add a new line
+                .add(new Text("Yelahanka New Town, Bangaluru, 560064 \n\n\n").setFont(companyFont).setFontSize(10)); // Set font size to 10px
 
-            // Create a cell for the logo (image) with margin
-            Cell logoCell = new Cell();
-            Image watermarkImage = new Image(ImageDataFactory.create(watermarkImagePath));
-            watermarkImage.setWidth(UnitValue.createPointValue(100));
-            logoCell.add(watermarkImage).setBorder(Border.NO_BORDER).setMarginRight(20f).setTextAlignment(TextAlignment.RIGHT); // Adjust the margin as needed
+        companyDetailsTable.addCell(new Cell().add(companyParagraph).setTextAlignment(TextAlignment.CENTER).setBorder(Border.NO_BORDER).setMarginTop(20f));
 
-            companyDetailsTable.addCell(textCell);
-            companyDetailsTable.addCell(logoCell);
+        // Add watermark image to the top-right corner with a negative right margin
+        Image watermarkImage = new Image(ImageDataFactory.create(watermarkImagePath));
+        watermarkImage.setWidth(UnitValue.createPointValue(100));
 
-            float pageWidth = doc.getPdfDocument().getDefaultPageSize().getWidth();
-            companyDetailsTable.setMarginTop(1 * pageWidth / 100);
-
-            doc.add(companyDetailsTable);
-
-            // Add space
-            doc.add(new Paragraph().setMarginTop(20));
-
-            // Add "Monthly Report" line with the date range
-            Paragraph monthlyReportLine = new Paragraph("Monthly Report: " + startDate.format(format) + " to " + endDate.format(format) + "\n\n")
-                    .setTextAlignment(TextAlignment.LEFT);
-            doc.add(monthlyReportLine);
-
-            firstPage = false; // Mark as not the first page
-        }
+        companyDetailsTable.addCell(new Cell().add(watermarkImage).setBorder(Border.NO_BORDER).setMarginTop(20f).setTextAlignment(TextAlignment.RIGHT));
+        doc.add(companyDetailsTable);
 
         // Create a table for the Booking Date
-        float[] bookingInfoColumnWidths = {140, 140, 140, 140, 140, 140, 140};
-        Table bookingTable = new Table(bookingInfoColumnWidths);
-        bookingTable.setTextAlignment(TextAlignment.CENTER);
+        Table dateTable = new Table(1);
+        dateTable.setWidth(400);
 
-        // Add table headers
-        bookingTable.addCell(new Cell().add(new Paragraph("ID")));
-        bookingTable.addCell(new Cell().add(new Paragraph("Booking ID")));
-        bookingTable.addCell(new Cell().add(new Paragraph("Vehicle Number")));
-        bookingTable.addCell(new Cell().add(new Paragraph("From Date")));
-        bookingTable.addCell(new Cell().add(new Paragraph("To Date")));
-        bookingTable.addCell(new Cell().add(new Paragraph("Booking Status")));
-        bookingTable.addCell(new Cell().add(new Paragraph("Booking Date")));
+        Paragraph dateParagraph = new Paragraph();
+        dateParagraph.add("Report form " + startDate.format(format) + " to " + endDate.format(format));
+        if (!bookingEntityList.isEmpty()) {
+            dateParagraph.add("\n\n");
 
-        boolean hasData = false; // Flag to track if there is data in the report
+            dateTable.addCell(new Cell().add(dateParagraph)
+                    .setTextAlignment(TextAlignment.LEFT)
+                    .setBorder(Border.NO_BORDER));
 
-        while (!startDate.isAfter(endDate)) {
-            List<BookingEntity> bookingEntityList = bookingRepo.getReport(startDate);
+            doc.add(dateTable);
 
-            if (!bookingEntityList.isEmpty()) { // Check if there is data for this date
-                hasData = true; // Set the flag to true
-                for (BookingEntity entity : bookingEntityList) {
-                    // Add data rows to the table
-                    bookingTable.addCell(new Cell().add(new Paragraph(String.valueOf(entity.getId()))));
-                    bookingTable.addCell(new Cell().add(new Paragraph(entity.getBookingId())));
-                    bookingTable.addCell(new Cell().add(new Paragraph(entity.getVehicleNumber())));
-                    bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getFromDate()))));
-                    bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getToDate()))));
-                    bookingTable.addCell(new Cell().add(new Paragraph(BookingStatusEnum.getDesc(entity.getBookingStatus()))));
-                    bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getBookingDate()))));
-                }
+            float[] bookingInfoColumnWidths = {130, 130, 145, 150, 150, 130};
+            Table bookingTable = new Table(bookingInfoColumnWidths);
+            bookingTable.setTextAlignment(TextAlignment.CENTER);
+            bookingTable.addCell(new Cell().add(new Paragraph("Booking ID")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Vehicle Number")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Booked Date")));
+            bookingTable.addCell(new Cell().add(new Paragraph("From Date")));
+            bookingTable.addCell(new Cell().add(new Paragraph("To Date")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Booking Status")));
+
+
+            for (BookingEntity entity : bookingEntityList) {
+                bookingTable.addCell(new Cell().add(new Paragraph(entity.getBookingId())));
+                bookingTable.addCell(new Cell().add(new Paragraph(entity.getVehicleNumber())));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getBookingDate()))));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getFromDate()))));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getToDate()))));
+                bookingTable.addCell(new Cell().add(new Paragraph(BookingStatusEnum.getDesc(entity.getBookingStatus()))));
+
             }
 
-            startDate = startDate.plusDays(1);
-        }
-
-        if (hasData) {
-            doc.add(bookingTable); // Add the table if there is data
+            doc.add(bookingTable);
         } else {
-            // No data for the entire week; remove the first (empty) page
-            bookingTable.addCell(new Cell().add(new Paragraph("There is no data")));
-        }
+            dateParagraph.add("\n There are no Booking");
+            dateTable.addCell(new Cell().add(dateParagraph)
+                    .setTextAlignment(TextAlignment.LEFT)
+                    .setBorder(Border.NO_BORDER));
 
+            doc.add(dateTable);
+        }
         writer.close();
         pdfDoc.close();
         doc.close();
 
+        System.out.println("PDF generated successfully.");
         return outputStream;
     }
+
 
     public class HeaderFooterEventHandler implements IEventHandler {
         private Color borderColor;

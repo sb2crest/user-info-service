@@ -1,14 +1,18 @@
 package com.example.user_info_service.scheduler;
 
 import com.example.user_info_service.entity.BookingEntity;
+import com.example.user_info_service.entity.UserEntity;
+import com.example.user_info_service.entity.VehicleEntity;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.model.EmailTransport;
 import com.example.user_info_service.repository.BookingRepo;
+import com.example.user_info_service.repository.VehicleInfoRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -22,17 +26,19 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
+
 
 @ExtendWith(SpringExtension.class)
-class WeeklyReportSchedulerTest {
-
+class TomorrowsBookingTest {
 
     @InjectMocks
-    private WeeklyReportScheduler scheduler;
+    private TomorrowsBooking tomorrowsBooking;
 
     @Mock
     private BookingRepo bookingRepo;
+
+    @Mock
+    private VehicleInfoRepo vehicleInfoRepo;
 
     @Mock
     private JavaMailSender mailSender;
@@ -44,38 +50,30 @@ class WeeklyReportSchedulerTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        scheduler = new WeeklyReportScheduler(emailTransport, bookingRepo);
-
-        ReflectionTestUtils.setField(scheduler, "emailUsername", "user@gmail.com");
-        ReflectionTestUtils.setField(scheduler, "emailPassword", "password");
-        ReflectionTestUtils.setField(scheduler, "toEmailAddress", "sender");
-        ReflectionTestUtils.setField(scheduler, "mailHost", "host");
-        ReflectionTestUtils.setField(scheduler, "mailPort", 587); // Replace with your actual mail port
-        ReflectionTestUtils.setField(scheduler, "mailStartTlsRequired", true);
-        ReflectionTestUtils.setField(scheduler, "mailStartTlsEnable", true);
-        ReflectionTestUtils.setField(scheduler, "mailSocketFactoryClass", "socket");
-        ReflectionTestUtils.setField(scheduler, "mailDebug", true);
+        ReflectionTestUtils.setField(tomorrowsBooking, "toEmailAddress", "sender");
     }
 
     @Test
-    void testSendWeeklyReportEmail() throws Exception {
+    void upcomingBookingsTest() throws Exception {
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
-        when(bookingRepo.getReportForWeeklyAndMonthly(any(),any())).thenReturn(List.of(getBookingEntity()));
+        when(bookingRepo.getTomorrowsBooking(any())).thenReturn(List.of(getBookingEntity()));
+        when(vehicleInfoRepo.getByVehicleNumber(any())).thenReturn(getVehicleEntity());
         doNothing().when(mailSender).send(any(MimeMessage.class));
         doNothing().when(emailTransport).send(any(MimeMessage.class));
-        scheduler.sendWeeklyReportEmail();
-        verify(emailTransport,times(1)).send(any());
+        tomorrowsBooking.tomorrowsBookingDetails();
+        verify(bookingRepo , times(1)).getTomorrowsBooking(Mockito.any());
+
     }
 
-
     @Test
-    public void sendWeeklyReportEmailWhenThereWereNoBooking() throws Exception {
+    void upcomingBookingsWhenThereAreNoBookingTomorrow() throws Exception {
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
-        when(bookingRepo.getReportForWeeklyAndMonthly(any(),any())).thenReturn(new ArrayList<>());
+        when(bookingRepo.getTomorrowsBooking(any())).thenReturn(new ArrayList<>());
         doNothing().when(mailSender).send(any(MimeMessage.class));
         doNothing().when(emailTransport).send(any(MimeMessage.class));
-        scheduler.sendWeeklyReportEmail();
-        verify(emailTransport,times(1)).send(any());
+        tomorrowsBooking.tomorrowsBookingDetails();
+        verify(bookingRepo , times(1)).getTomorrowsBooking(Mockito.any());
+
     }
 
     BookingEntity getBookingEntity() {
@@ -83,12 +81,27 @@ class WeeklyReportSchedulerTest {
         bookingEntity.setBookingId("123");
         bookingEntity.setMobile("1234");
         bookingEntity.setId(1L);
-        bookingEntity.setUserEntity(null);
+        UserEntity userEntity = new UserEntity();
+        userEntity.setName("abc");
+        userEntity.setMobile("1234");
+        userEntity.setEmail("abc@gmail.com");
+        bookingEntity.setUserEntity(userEntity);
         bookingEntity.setVehicleNumber("ka02m1234");
         bookingEntity.setBookingDate(LocalDate.now());
         bookingEntity.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity.setToDate(LocalDate.now().minusDays(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
         return bookingEntity;
+    }
+
+    VehicleEntity getVehicleEntity() {
+        VehicleEntity vehicleEntity = new VehicleEntity();
+        vehicleEntity.setVehicleNumber("ka02m1234");
+        vehicleEntity.setSeatCapacity(12);
+        vehicleEntity.setIsVehicleAC(true);
+        vehicleEntity.setS3ImageUrl("http/image");
+        vehicleEntity.setIsVehicleSleeper(true);
+        vehicleEntity.setVId(1L);
+        return vehicleEntity;
     }
 }
