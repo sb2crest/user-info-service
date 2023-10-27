@@ -82,7 +82,9 @@ class TomorrowsBookingTest {
         bookingEntity.setMobile("1234");
         bookingEntity.setId(1L);
         UserEntity userEntity = new UserEntity();
-        userEntity.setName("abc");
+        userEntity.setFirstName("abc");
+        userEntity.setMiddleName("abc");
+        userEntity.setLastName("abc");
         userEntity.setMobile("1234");
         userEntity.setEmail("abc@gmail.com");
         bookingEntity.setUserEntity(userEntity);

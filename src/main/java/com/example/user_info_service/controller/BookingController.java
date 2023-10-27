@@ -19,7 +19,12 @@ public class BookingController {
 
     @PostMapping("/booking")
     public ResponseEntity<String> bookingVehicle(@RequestBody BookingPojo bookingPojo) throws ParseException {
-        return new ResponseEntity<>(bookingService.bookingVehicle(bookingPojo), HttpStatus.OK);
+        String result = bookingService.bookingVehicle(bookingPojo);
+        if(result != null) {
+            return new ResponseEntity<>(result , HttpStatus.OK);
+        }else {
+            return new ResponseEntity<>("Slots already Booked", HttpStatus.IM_USED);
+        }
     }
 
     @GetMapping("/bookingDetails")
@@ -39,14 +44,12 @@ public class BookingController {
 
     @GetMapping("/getBookedSlotsByVehicleNumber")
     public ResponseEntity<VehicleBooked> getBookedSlotsByVehicleNumber(@RequestParam("vehicleNumber") String vehicleNumber) {
-        VehicleBooked vehicleBooked = bookingService.getBookedSlotsByVehicleNumber(vehicleNumber);
-        return new ResponseEntity<>(vehicleBooked, HttpStatus.OK);
+        return new ResponseEntity<>( bookingService.getBookedSlotsByVehicleNumber(vehicleNumber) ,HttpStatus.OK);
     }
 
     @PostMapping("/getVehicleAvailability")
     public ResponseEntity<List<VehiclePojo>> getVehicleAvailability(@RequestBody VehiclesAvailable vehiclesAvailable) {
-        List<VehiclePojo> vehiclePojo = bookingService.getVehicleAvailability(vehiclesAvailable);
-        return new ResponseEntity<>(vehiclePojo, HttpStatus.OK);
+        return new ResponseEntity<>(bookingService.getVehicleAvailability(vehiclesAvailable) ,HttpStatus.OK);
     }
     @GetMapping("/getBookingInfoByBookingId")
     public ResponseEntity<BookingInfo> getBookingInfoByBookingId(@RequestParam("bookingId") String bookingId) {

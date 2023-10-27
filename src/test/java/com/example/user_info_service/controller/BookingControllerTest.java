@@ -119,9 +119,9 @@ class     BookingControllerTest {
         bookingPojo.setVehicleNumber("ka02h0886");
         UserPojo userPojo = new UserPojo();
         userPojo.setMobile("1234456671");
-        userPojo.setName("abc");
+        userPojo.setFirstName("abc");
         userPojo.setEmail("abc@gmail.com");
-        bookingPojo.setUserPojo(userPojo);
+        bookingPojo.setUser(userPojo);
         return bookingPojo;
     }
 

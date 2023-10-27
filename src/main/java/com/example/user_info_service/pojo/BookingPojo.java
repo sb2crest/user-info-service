@@ -16,7 +16,7 @@ public class BookingPojo {
 
     private LocalDate toDate;
 
-    private UserPojo userPojo;
+    private UserPojo user;
 
-    private SlotsPojo slotsPojo;
+    private SlotsPojo slots;
 }

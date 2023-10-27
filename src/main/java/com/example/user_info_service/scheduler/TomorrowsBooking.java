@@ -79,7 +79,9 @@ public class TomorrowsBooking {
             for (BookingEntity bookingEntity : bookingEntityList) {
                 messageBody.append("<tr>");
                 messageBody.append("<td><div style='text-align: center;'>").append(bookingEntity.getBookingId()).append("</div></td>");
-                messageBody.append("<td><div style='text-align: center;'>").append(bookingEntity.getUserEntity().getName()).append("</div></td>");
+                messageBody.append("<td><div style='text-align: center;'>").append(bookingEntity.getUserEntity().getFirstName()).append("</div></td>");
+                messageBody.append("<td><div style='text-align: center;'>").append(bookingEntity.getUserEntity().getMiddleName()).append("</div></td>");
+                messageBody.append("<td><div style='text-align: center;'>").append(bookingEntity.getUserEntity().getLastName()).append("</div></td>");
                 messageBody.append("<td><div style='text-align: center;'>").append(bookingEntity.getMobile()).append("</div></td>");
                 messageBody.append("<td><div style='text-align: center;'>").append(bookingEntity.getVehicleNumber()).append("</div></td>");
                 messageBody.append("<td><div style='text-align: center;'>").append(format.format(tomorrow)).append("</div></td>");
@@ -109,7 +111,14 @@ public class TomorrowsBooking {
 
         StringBuilder emailContent = new StringBuilder();
         emailContent.append("<html><body>");
-        emailContent.append("<p>Dear Customer <strong>").append(user.getName()).append("</strong>,</p>");
+        emailContent.append("<p>Dear Customer <strong>")
+                .append(user.getFirstName())
+                .append(" ")
+                .append(user.getMiddleName())
+                .append(" ")
+                .append(user.getLastName())
+                .append("</strong>,</p>");
+
         emailContent.append("<p>Your Booking Details for Tomorrow</p>");
         emailContent.append("<table border='1'>");
         emailContent.append("<style>td { text-align: center; }</style>");

@@ -7,6 +7,7 @@ import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
 @Setter
@@ -46,5 +47,8 @@ public class BookingEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "mobile",referencedColumnName = "mobile", updatable = false, insertable = false)
     private UserEntity userEntity;
+
+    @OneToMany(mappedBy = "bookingEntity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<PaymentEntity> paymentEntities;
 
 }

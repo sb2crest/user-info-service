@@ -9,7 +9,12 @@ import lombok.Setter;
 public class UserPojo {
 
     @NonNull
-    private String name;
+    private String firstName;
+
+    private String middleName;
+
+    @NonNull
+    private String lastName;
 
     @NonNull
     private String mobile;

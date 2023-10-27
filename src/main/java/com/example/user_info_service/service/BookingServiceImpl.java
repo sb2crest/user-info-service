@@ -38,11 +38,12 @@ public class BookingServiceImpl implements BookingService {
     VehicleInfoRepo vehicleInfoRepo;
 
     private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private final DateTimeFormatter localDateFormatForBookingDate = DateTimeFormatter.ofPattern("EEEE, MMMM dd yyyy");
 
     @Override
     @Transactional
     public String bookingVehicle(BookingPojo bookingPojo) throws ParseException {
-        checkUserDetails(bookingPojo.getUserPojo());
+        checkUserDetails(bookingPojo.getUser());
 
         BookingEntity bookingEntity = new BookingEntity();
         SlotsEntity slotsEntity = new SlotsEntity();
@@ -53,9 +54,9 @@ public class BookingServiceImpl implements BookingService {
             saveBooking(bookingEntity, bookingPojo);
             saveSlot(slotsEntity, bookingEntity);
         } else {
-            return "Slots already Booked";
+            return null;
         }
-        return "Booking Successful";
+        return bookingEntity.getBookingId();
     }
 
 
@@ -76,7 +77,7 @@ public class BookingServiceImpl implements BookingService {
         bookingEntity.setFromDate(bookingPojo.getFromDate());
         bookingEntity.setToDate(bookingPojo.getToDate());
         bookingEntity.setBookingId(generateBookingId());
-        bookingEntity.setMobile(bookingPojo.getUserPojo().getMobile());
+        bookingEntity.setMobile(bookingPojo.getUser().getMobile());
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
         bookingEntity.setBookingDate(LocalDate.now());
         bookingRepo.save(bookingEntity);
@@ -92,12 +93,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void saveUser(BookingPojo bookingPojo) {
-        UserEntity user = userRepo.getUserByMobileNumber(bookingPojo.getUserPojo().getMobile());
+        UserEntity user = userRepo.getUserByMobileNumber(bookingPojo.getUser().getMobile());
         if (user == null) {
             UserEntity userEntity = new UserEntity();
-            userEntity.setName(bookingPojo.getUserPojo().getName());
-            userEntity.setEmail(bookingPojo.getUserPojo().getEmail());
-            userEntity.setMobile(bookingPojo.getUserPojo().getMobile());
+            userEntity.setFirstName(bookingPojo.getUser().getFirstName());
+            userEntity.setMiddleName(bookingPojo.getUser().getMiddleName());
+            userEntity.setLastName(bookingPojo.getUser().getLastName());
+            userEntity.setEmail(bookingPojo.getUser().getEmail());
+            userEntity.setMobile(bookingPojo.getUser().getMobile());
             userRepo.save(userEntity);
         }
     }
@@ -129,7 +132,7 @@ public class BookingServiceImpl implements BookingService {
         BookingEntity bookingEntity = bookingRepo.getByBookingId(bookingId);
         validateBookingEntity(bookingEntity);
         VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingEntity.getVehicleNumber());
-
+        validateVehicleEntity(vehicleEntity);
         return getBookingInfo(vehicleEntity, bookingEntity);
     }
 
@@ -138,7 +141,7 @@ public class BookingServiceImpl implements BookingService {
         bookingInfo.setVehicleNumber(bookingEntity.getVehicleNumber());
         bookingInfo.setToDate(localDateFormat.format(bookingEntity.getToDate()));
         bookingInfo.setFromDate(localDateFormat .format(bookingEntity.getFromDate()));
-        bookingInfo.setBookingDate(bookingEntity.getBookingDate());
+        bookingInfo.setBookingDate(localDateFormatForBookingDate.format(bookingEntity.getBookingDate()));
         bookingInfo.setDriverName(vehicleEntity.getDriverName());
         bookingInfo.setDriverNumber(vehicleEntity.getDriverNumber());
         bookingInfo.setAlternateNumber(vehicleEntity.getAlternateNumber());
@@ -170,6 +173,9 @@ public class BookingServiceImpl implements BookingService {
         List<BookedDates> bookedDatesList = new ArrayList<>();
 
         List<SlotsEntity> slotsEntityList = slotsRepo.getByVehicleNUmber(vehicleNumber);
+        if(slotsEntityList.isEmpty()){
+            throw new BookingException(ResStatus.SLOTS_NOT_FOUND);
+        }
 
         for (SlotsEntity slotsEntity : slotsEntityList) {
             bookedDatesList.add(new BookedDates(slotsEntity.getFromDate(), Boolean.TRUE));
@@ -224,7 +230,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void getVehicleDetails(BookingDetails bookingDetails) {
-        VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingDetails.getSlotsPojo().getVehicleNumber());
+        VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingDetails.getSlots().getVehicleNumber());
         validateVehicleEntity(vehicleEntity);
         VehiclePojo vehiclePojo = new VehiclePojo();
         vehiclePojo.setVehicleNumber(vehicleEntity.getVehicleNumber());
@@ -232,7 +238,7 @@ public class BookingServiceImpl implements BookingService {
         vehiclePojo.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
         vehiclePojo.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
         vehiclePojo.setImageUrl(vehicleEntity.getS3ImageUrl());
-        bookingDetails.setVehiclePojo(vehiclePojo);
+        bookingDetails.setVehicle(vehiclePojo);
     }
 
     private void getSlot(String bookingId, BookingDetails bookingDetails) {
@@ -242,7 +248,7 @@ public class BookingServiceImpl implements BookingService {
         slotsPojo.setVehicleNumber(slotsEntity.getVehicleNumber());
         slotsPojo.setFromDate(localDateFormat.format(slotsEntity.getFromDate()));
         slotsPojo.setToDate(localDateFormat.format(slotsEntity.getToDate()));
-        bookingDetails.setSlotsPojo(slotsPojo);
+        bookingDetails.setSlots(slotsPojo);
     }
 
     private void getUser(BookingEntity bookingEntity, BookingDetails bookingDetails) {
@@ -250,9 +256,11 @@ public class BookingServiceImpl implements BookingService {
         validateUserEntity(user);
         UserPojo userPojo = new UserPojo();
         userPojo.setMobile(user.getMobile());
-        userPojo.setName(user.getName());
+        userPojo.setFirstName(user.getFirstName());
+        userPojo.setMiddleName(user.getMiddleName());
+        userPojo.setLastName(user.getLastName());
         userPojo.setEmail(user.getEmail());
-        bookingDetails.setUserPojo(userPojo);
+        bookingDetails.setUser(userPojo);
     }
 
     private void validateBookingEntity(BookingEntity bookingEntity) {

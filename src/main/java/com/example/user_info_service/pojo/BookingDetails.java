@@ -7,9 +7,9 @@ import lombok.Setter;
 @Setter
 public class BookingDetails {
 
-    private VehiclePojo vehiclePojo;
+    private VehiclePojo vehicle;
 
-    private UserPojo userPojo;
+    private UserPojo user;
 
-    private SlotsPojo slotsPojo;
+    private SlotsPojo slots;
 }

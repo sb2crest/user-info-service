@@ -11,7 +11,8 @@ public enum ResStatus {
     VEHICLE_NOT_FOUND("5004","Vehicle Details not found"),
     USER_NOT_FOUND("5005","User Details not found"),
     SLOTS_NOT_FOUND("5006","Slots Details not found"),
-    INVALID_EMAIL("5007","Invalid Email ID ");
+    INVALID_EMAIL("5007","Invalid Email ID "),
+    NO_RECORD_FOUND_WITH_ID_AND_MOBILE("5008","No record found with matching ID and Mobile Number ");
 
     private final String code;
     private final String desc;

@@ -19,5 +19,5 @@ public class BookingInfo {
 
     private String toDate;
 
-    private LocalDate bookingDate;
+    private String bookingDate;
 }
