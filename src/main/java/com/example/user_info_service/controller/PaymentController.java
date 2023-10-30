@@ -25,28 +25,16 @@ public class PaymentController {
 
     @PostMapping("/verifySignature")
     public ResponseEntity<String> verifySignature(
-            @RequestParam("razorpay_payment_id") String razorpayPaymentId,
-            @RequestParam("booking_id") String bookingId,
+            @RequestParam("razorpayOrderId") String razorPayOrderId,
+            @RequestParam("razorPayPaymentId") String razorPayPaymentId,
             @RequestParam("signature") String signature) {
 
-        boolean isValid = paymentService.verifyRazorpaySignature(razorpayPaymentId, bookingId, signature);
+        boolean isValid = paymentService.verifyRazorpaySignature(razorPayOrderId, razorPayPaymentId, signature);
 
         if (isValid) {
             return ResponseEntity.ok("Signature is valid");
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Signature is not valid");
-        }
-    }
-
-    @PostMapping("/generateSignature")
-    public ResponseEntity<String> generateSignature(
-            @RequestParam("razorpay_order_id") String razorpayOrderId,
-            @RequestParam("booking_id") String bookingId) {
-        String signature = paymentService.generateRazorpaySignature(razorpayOrderId, bookingId);
-        if (signature != null) {
-            return ResponseEntity.ok(signature);
-        } else {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Signature generation failed");
         }
     }
 

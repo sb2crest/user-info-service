@@ -15,9 +15,16 @@ import com.example.user_info_service.repository.UserRepo;
 import com.example.user_info_service.repository.VehicleInfoRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
+import java.io.File;
 import java.text.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -37,14 +44,21 @@ public class BookingServiceImpl implements BookingService {
     @Autowired
     VehicleInfoRepo vehicleInfoRepo;
 
+    @Autowired
+    private JavaMailSender javaMailSender;
+
+    @Value("${mail.to.username}")
+    private String toEmailAddress;
+
     private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private final DateTimeFormatter localDateFormatForBookingDate = DateTimeFormatter.ofPattern("EEEE, MMMM dd yyyy");
 
     @Override
     @Transactional
-    public String bookingVehicle(BookingPojo bookingPojo) throws ParseException {
+    public BookingResponse bookingVehicle(BookingPojo bookingPojo) throws ParseException {
         checkUserDetails(bookingPojo.getUser());
 
+        BookingResponse bookingResponse = new BookingResponse();
         BookingEntity bookingEntity = new BookingEntity();
         SlotsEntity slotsEntity = new SlotsEntity();
 
@@ -54,9 +68,15 @@ public class BookingServiceImpl implements BookingService {
             saveBooking(bookingEntity, bookingPojo);
             saveSlot(slotsEntity, bookingEntity);
         } else {
-            return null;
+            bookingResponse.setBookingId(null);
+            bookingResponse.setMessage("Slots already Booked");
+            bookingResponse.setStatusCode(HttpStatus.IM_USED.value());
+            return bookingResponse;
         }
-        return bookingEntity.getBookingId();
+        bookingResponse.setBookingId(bookingEntity.getBookingId());
+        bookingResponse.setMessage("Booking successful");
+        bookingResponse.setStatusCode(HttpStatus.OK.value());
+        return bookingResponse;
     }
 
 
@@ -67,7 +87,11 @@ public class BookingServiceImpl implements BookingService {
         if (userPojo.getMobile().length() != 10) {
             throw new BookingException(ResStatus.MOBILE_DIGIT);
         }
-        if (userPojo.getEmail() != null && !GmailValidator.isValidGmail(userPojo.getEmail())) {
+        userEmailValidation(userPojo.getEmail());
+    }
+
+    private void userEmailValidation(String email) {
+        if (email != null && !GmailValidator.isValidGmail(email)) {
             throw new BookingException(ResStatus.INVALID_EMAIL);
         }
     }
@@ -136,11 +160,59 @@ public class BookingServiceImpl implements BookingService {
         return getBookingInfo(vehicleEntity, bookingEntity);
     }
 
+    @Override
+    public void getInTouch(UserData userData) throws Exception {
+        userEmailValidation(userData.getEmail());
+        String localLogoPath = System.getProperty("user.dir") + "/src/main/resources/images/LOGO.png";
+
+        MimeMessage message = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+        StringBuilder messageBody = new StringBuilder();
+        messageBody.append("<html><body>");
+        messageBody.append("<h2>User Details ").append(" :</h2>");
+
+        messageBody.append("<table border='1' width='80%'>");
+
+        messageBody.append("<style>td { text-align: center; }</style>");
+
+        messageBody.append("<tr>");
+        messageBody.append("<th><b>User Name</b></th>");
+        messageBody.append("<th><b>Email</b></th>");
+        messageBody.append("<th><b>Message</b></th>");
+        messageBody.append("</tr>");
+
+        messageBody.append("<tr>");
+        messageBody.append("<td><div style='text-align: center;'>").append(userData.getName()).append("</div></td>");
+        messageBody.append("<td><div style='text-align: center;'>").append(userData.getEmail()).append("</div></td>");
+        messageBody.append("<td><div style='text-align: center;'>").append(userData.getMessage()).append("</div></td>");
+        messageBody.append("</tr>");
+
+        messageBody.append("</table>");
+
+        messageBody.append("<br><br><br>");
+
+        messageBody.append("<img src='cid:logoImage' width='150' height='75'>");
+        messageBody.append("<br>");
+        messageBody.append("<br>");
+        messageBody.append("<br>");
+        messageBody.append("<br>");
+        messageBody.append("<p>Best Regards<br><strong>NanduBus.in</strong></p>");
+        messageBody.append("</body></html>");
+
+        helper.setTo(toEmailAddress);
+        helper.setSubject("Pay attention: User Details to get in touch ");
+        helper.setText(messageBody.toString(), true);
+        helper.addInline("logoImage", new File(localLogoPath));
+
+        javaMailSender.send(message);
+    }
+
     private BookingInfo getBookingInfo(VehicleEntity vehicleEntity, BookingEntity bookingEntity) {
         BookingInfo bookingInfo = new BookingInfo();
         bookingInfo.setVehicleNumber(bookingEntity.getVehicleNumber());
         bookingInfo.setToDate(localDateFormat.format(bookingEntity.getToDate()));
-        bookingInfo.setFromDate(localDateFormat .format(bookingEntity.getFromDate()));
+        bookingInfo.setFromDate(localDateFormat.format(bookingEntity.getFromDate()));
         bookingInfo.setBookingDate(localDateFormatForBookingDate.format(bookingEntity.getBookingDate()));
         bookingInfo.setDriverName(vehicleEntity.getDriverName());
         bookingInfo.setDriverNumber(vehicleEntity.getDriverNumber());
@@ -173,7 +245,7 @@ public class BookingServiceImpl implements BookingService {
         List<BookedDates> bookedDatesList = new ArrayList<>();
 
         List<SlotsEntity> slotsEntityList = slotsRepo.getByVehicleNUmber(vehicleNumber);
-        if(slotsEntityList.isEmpty()){
+        if (slotsEntityList.isEmpty()) {
             throw new BookingException(ResStatus.SLOTS_NOT_FOUND);
         }
 
@@ -264,25 +336,25 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validateBookingEntity(BookingEntity bookingEntity) {
-        if (bookingEntity == null ) {
+        if (bookingEntity == null) {
             throw new BookingException(ResStatus.BOOKING_NOT_FOUND);
         }
     }
 
     private void validateVehicleEntity(VehicleEntity vehicleEntity) {
-        if (vehicleEntity == null ) {
+        if (vehicleEntity == null) {
             throw new BookingException(ResStatus.VEHICLE_NOT_FOUND);
         }
     }
 
     private void validateUserEntity(UserEntity userEntity) {
-        if (userEntity == null ) {
+        if (userEntity == null) {
             throw new BookingException(ResStatus.USER_NOT_FOUND);
         }
     }
 
     private void validateSlotEntity(SlotsEntity slotsEntity) {
-        if (slotsEntity == null ) {
+        if (slotsEntity == null) {
             throw new BookingException(ResStatus.SLOTS_NOT_FOUND);
         }
     }

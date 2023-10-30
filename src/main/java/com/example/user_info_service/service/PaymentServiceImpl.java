@@ -10,6 +10,7 @@ import com.example.user_info_service.pojo.PaymentResponse;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.PaymentRepository;
 import com.razorpay.Order;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -26,12 +27,13 @@ import java.util.Base64;
 import java.util.Date;
 
 @Service
+@Slf4j
 public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     private PaymentRepository paymentRepository;
 
-    private RazorpayClient razorPayClient;
+    RazorpayClient razorPayClient;
 
     @Value("${razorpay.api.key.id}")
     private String keyID;
@@ -42,12 +44,19 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     BookingRepo bookingRepo;
 
+    public PaymentServiceImpl() {
+    }
+
+    public PaymentServiceImpl(RazorpayClient razorPayClient) {
+        this.razorPayClient = razorPayClient;
+    }
+
     @Override
     public PaymentResponse createPayment(PaymentPojo paymentPojo) {
 
         PaymentResponse response = new PaymentResponse();
 
-        Boolean validate = bookingRepo.validateUsingIdAndMobile(paymentPojo.getBookingId() , paymentPojo.getMobile());
+        Boolean validate = bookingRepo.validateUsingIdAndMobile(paymentPojo.getBookingId(), paymentPojo.getMobile());
         if (validate) {
 
             try {
@@ -76,33 +85,33 @@ public class PaymentServiceImpl implements PaymentService {
                 response.setStatus("error");
                 response.setMessage("Error creating Razorpay order: " + e.getMessage());
             }
-        }
-        else {
+        } else {
             throw new BookingException(ResStatus.NO_RECORD_FOUND_WITH_ID_AND_MOBILE);
         }
         return response;
 
     }
 
-    public String generateRazorpaySignature(String razorpayOrderId, String bookingId) {
+    public String generateRazorpaySignature(String razorPayOrderId, String razorPayPaymentId) {
+        String signature = null;
         try {
-            String secret = keySecret; // Your Razorpay API Secret Key
-            String data = razorpayOrderId + "|" + bookingId;
+            String secret = keySecret;
+            String data = razorPayOrderId + "|" + razorPayPaymentId;
             Mac sha256Hmac = Mac.getInstance("HmacSHA256");
             SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
             sha256Hmac.init(secretKey);
 
             byte[] hmacData = sha256Hmac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hmacData);
+            signature = Base64.getEncoder().encodeToString(hmacData);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            e.printStackTrace();
-            return "Error while generating signature";
+            log.debug("Exception while generating signature " + e.getMessage());
         }
+        return signature;
     }
 
-    public boolean verifyRazorpaySignature(String razorpayOrderId, String bookingId, String razorpaySignature) {
-        String generatedSignature = generateRazorpaySignature(razorpayOrderId, bookingId);
-        return generatedSignature != null && generatedSignature.equals(razorpaySignature);
+    public boolean verifyRazorpaySignature(String razorPayOrderId, String razorPayPaymentId, String razorPaySignature) {
+        String generatedSignature = generateRazorpaySignature(razorPayOrderId, razorPayPaymentId);
+        return generatedSignature != null && generatedSignature.equals(razorPaySignature);
     }
 
 

@@ -9,5 +9,5 @@ public interface PaymentService {
 
     String generateRazorpaySignature(String razorpayPaymentId, String bookingId);
 
-    boolean verifyRazorpaySignature(String razorpayPaymentId, String bookingId, String signature);
+    boolean verifyRazorpaySignature(String razorPayOrderId, String razorPayPaymentId, String signature);
 }

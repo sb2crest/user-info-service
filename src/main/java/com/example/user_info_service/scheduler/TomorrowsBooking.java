@@ -47,8 +47,10 @@ public class TomorrowsBooking {
 
             if (!bookingEntityList.isEmpty()) {
             for (BookingEntity bookingEntity : bookingEntityList) {
-                VehicleEntity vehicle = vehicleInfoRepo.getByVehicleNumber(bookingEntity.getVehicleNumber());
-                sendEmailToUser(bookingEntity.getUserEntity(), bookingEntity, vehicle);
+                if(bookingEntity.getUserEntity().getEmail() != null) {
+                    VehicleEntity vehicle = vehicleInfoRepo.getByVehicleNumber(bookingEntity.getVehicleNumber());
+                    sendEmailToUser(bookingEntity.getUserEntity(), bookingEntity, vehicle);
+                }
             }
         }
         sendEmailToAdmin(bookingEntityList);

@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @WebMvcTest(BookingController.class)
-class     BookingControllerTest {
+class BookingControllerTest {
 
     @MockBean
     BookingService bookingService;
@@ -45,7 +45,7 @@ class     BookingControllerTest {
     @Test
     void testBookingVehicle() throws Exception {
         BookingPojo bookingPojo = getBookingPojo();
-        when(bookingService.bookingVehicle(Mockito.any())).thenReturn("successful");
+        when(bookingService.bookingVehicle(Mockito.any())).thenReturn(new BookingResponse());
         mvc.perform(post("/booking").content(TestUtil.convertObjectToJsonBytes(bookingPojo))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

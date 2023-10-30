@@ -18,17 +18,12 @@ public class BookingController {
     BookingService bookingService;
 
     @PostMapping("/booking")
-    public ResponseEntity<String> bookingVehicle(@RequestBody BookingPojo bookingPojo) throws ParseException {
-        String result = bookingService.bookingVehicle(bookingPojo);
-        if(result != null) {
-            return new ResponseEntity<>(result , HttpStatus.OK);
-        }else {
-            return new ResponseEntity<>("Slots already Booked", HttpStatus.IM_USED);
-        }
+    public BookingResponse bookingVehicle(@RequestBody BookingPojo bookingPojo) throws ParseException {
+        return bookingService.bookingVehicle(bookingPojo);
     }
 
     @GetMapping("/bookingDetails")
-    public ResponseEntity<BookingDetails> getBookingDetails(@RequestParam("bookingId") String bookingId)  {
+    public ResponseEntity<BookingDetails> getBookingDetails(@RequestParam("bookingId") String bookingId) {
         return new ResponseEntity<>(bookingService.getBookingDetails(bookingId), HttpStatus.OK);
     }
 
@@ -44,15 +39,22 @@ public class BookingController {
 
     @GetMapping("/getBookedSlotsByVehicleNumber")
     public ResponseEntity<VehicleBooked> getBookedSlotsByVehicleNumber(@RequestParam("vehicleNumber") String vehicleNumber) {
-        return new ResponseEntity<>( bookingService.getBookedSlotsByVehicleNumber(vehicleNumber) ,HttpStatus.OK);
+        return new ResponseEntity<>(bookingService.getBookedSlotsByVehicleNumber(vehicleNumber), HttpStatus.OK);
     }
 
     @PostMapping("/getVehicleAvailability")
     public ResponseEntity<List<VehiclePojo>> getVehicleAvailability(@RequestBody VehiclesAvailable vehiclesAvailable) {
-        return new ResponseEntity<>(bookingService.getVehicleAvailability(vehiclesAvailable) ,HttpStatus.OK);
+        return new ResponseEntity<>(bookingService.getVehicleAvailability(vehiclesAvailable), HttpStatus.OK);
     }
+
     @GetMapping("/getBookingInfoByBookingId")
     public ResponseEntity<BookingInfo> getBookingInfoByBookingId(@RequestParam("bookingId") String bookingId) {
         return new ResponseEntity<>(bookingService.getBookingInfoByBookingId(bookingId), HttpStatus.OK);
+    }
+
+    @PostMapping("/getInTouch")
+    public ResponseEntity<String> getInTouch(@RequestBody UserData userData) throws Exception {
+        bookingService.getInTouch(userData);
+        return ResponseEntity.ok("Email sent successfully.");
     }
 }

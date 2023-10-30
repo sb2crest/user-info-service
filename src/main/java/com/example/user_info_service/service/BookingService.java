@@ -2,11 +2,12 @@ package com.example.user_info_service.service;
 
 import com.example.user_info_service.pojo.*;
 
+import javax.mail.MessagingException;
 import java.text.ParseException;
 import java.util.List;
 
 public interface BookingService {
-    String bookingVehicle(BookingPojo bookingPojo) throws ParseException;
+    BookingResponse bookingVehicle(BookingPojo bookingPojo) throws ParseException;
 
     BookingDetails getBookingDetails(String bookingId);
 
@@ -19,4 +20,6 @@ public interface BookingService {
     List<VehiclePojo> getVehicleAvailability(VehiclesAvailable vehiclesAvailable);
 
     BookingInfo getBookingInfoByBookingId(String bookingId);
+
+    void getInTouch(UserData userData) throws Exception;
 }

@@ -58,9 +58,9 @@ class BookingServiceImplTest {
         ).thenReturn(false);
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         BookingPojo bookingPojo = createBookingPojo();
-        String bookingId = bookingService.bookingVehicle(bookingPojo);
+        BookingResponse bookingResponse = bookingService.bookingVehicle(bookingPojo);
 
-        assertNotNull(bookingId);
+        assertEquals(200 , bookingResponse.getStatusCode());
     }
 
     @Test
@@ -113,7 +113,7 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         BookingPojo bookingPojo = createBookingPojo();
         bookingPojo.getUser().setEmail(null);
-        String bookingId = bookingService.bookingVehicle(bookingPojo);
+        String bookingId = bookingService.bookingVehicle(bookingPojo).getBookingId();
 
         assertNotNull(bookingId);
     }
@@ -149,7 +149,7 @@ class BookingServiceImplTest {
         ).thenReturn(false);
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(null);
         BookingPojo bookingPojo = createBookingPojo();
-        String bookingId = bookingService.bookingVehicle(bookingPojo);
+        String bookingId = bookingService.bookingVehicle(bookingPojo).getBookingId();
 
         assertNotNull(bookingId);
 
@@ -166,7 +166,7 @@ class BookingServiceImplTest {
                 fromDateCaptor.capture(),
                 toDateCaptor.capture())
         ).thenReturn(true);
-        assertEquals(null, bookingService.bookingVehicle(createBookingPojo()));
+        assertEquals(null, bookingService.bookingVehicle(createBookingPojo()).getBookingId());
 
     }
 
@@ -259,7 +259,7 @@ class BookingServiceImplTest {
         when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(getBookingEntity());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
         BookingInfo bookingInfoByBookingId = bookingService.getBookingInfoByBookingId("123");
-        assertEquals("24-10-2023" , bookingInfoByBookingId.getFromDate());
+        assertEquals("ka02m1234" , bookingInfoByBookingId.getVehicleNumber());
     }
 
     VehiclesAvailable getVehiclesAvailable() {
@@ -339,5 +339,13 @@ class BookingServiceImplTest {
         return bookingPojo;
     }
 
+    private BookingResponse getBookingResponse(){
+        BookingResponse  bookingResponse = new BookingResponse();
+        bookingResponse.setBookingId("NBwh36");
+        bookingResponse.setMessage("Booking Successful");
+        bookingResponse.setStatusCode(200);
 
+        return bookingResponse;
+
+    }
 }

@@ -56,7 +56,7 @@ class TomorrowsBookingTest {
     @Test
     void upcomingBookingsTest() throws Exception {
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
-        when(bookingRepo.getTomorrowsBooking(any())).thenReturn(List.of(getBookingEntity()));
+        when(bookingRepo.getTomorrowsBooking(any())).thenReturn(getBookingEntity());
         when(vehicleInfoRepo.getByVehicleNumber(any())).thenReturn(getVehicleEntity());
         doNothing().when(mailSender).send(any(MimeMessage.class));
         doNothing().when(emailTransport).send(any(MimeMessage.class));
@@ -76,24 +76,44 @@ class TomorrowsBookingTest {
 
     }
 
-    BookingEntity getBookingEntity() {
-        BookingEntity bookingEntity = new BookingEntity();
-        bookingEntity.setBookingId("123");
-        bookingEntity.setMobile("1234");
-        bookingEntity.setId(1L);
+    List<BookingEntity> getBookingEntity() {
+        List<BookingEntity> bookingEntityList = new ArrayList<>();
+        BookingEntity booking = new BookingEntity();
+        booking.setBookingId("123");
+        booking.setMobile("1234");
+        booking.setId(1L);
         UserEntity userEntity = new UserEntity();
         userEntity.setFirstName("abc");
         userEntity.setMiddleName("abc");
         userEntity.setLastName("abc");
         userEntity.setMobile("1234");
         userEntity.setEmail("abc@gmail.com");
-        bookingEntity.setUserEntity(userEntity);
+        booking.setUserEntity(userEntity);
+        booking.setVehicleNumber("ka02m1234");
+        booking.setBookingDate(LocalDate.now());
+        booking.setFromDate(LocalDate.now().minusDays(3));
+        booking.setToDate(LocalDate.now().minusDays(1));
+        booking.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+
+        BookingEntity bookingEntity = new BookingEntity();
+        bookingEntity.setBookingId("123");
+        bookingEntity.setMobile("1234");
+        bookingEntity.setId(1L);
+        UserEntity user = new UserEntity();
+        user.setFirstName("abc");
+        user.setMiddleName("abc");
+        user.setLastName("abc");
+        user.setMobile("1234");
+        bookingEntity.setUserEntity(user);
         bookingEntity.setVehicleNumber("ka02m1234");
         bookingEntity.setBookingDate(LocalDate.now());
         bookingEntity.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity.setToDate(LocalDate.now().minusDays(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
-        return bookingEntity;
+
+        bookingEntityList.add(booking);
+        bookingEntityList.add(bookingEntity);
+        return bookingEntityList;
     }
 
     VehicleEntity getVehicleEntity() {
