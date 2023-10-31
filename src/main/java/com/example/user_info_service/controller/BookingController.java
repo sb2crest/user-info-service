@@ -13,6 +13,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
+@CrossOrigin(origins = "http://localhost:8100")
 public class BookingController {
     @Autowired
     BookingService bookingService;
