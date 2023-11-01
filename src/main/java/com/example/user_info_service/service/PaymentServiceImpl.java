@@ -5,6 +5,7 @@ package com.example.user_info_service.service;
 import com.example.user_info_service.entity.PaymentEntity;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
+import com.example.user_info_service.pojo.PaymentData;
 import com.example.user_info_service.pojo.PaymentPojo;
 import com.example.user_info_service.pojo.PaymentResponse;
 import com.example.user_info_service.repository.BookingRepo;
@@ -79,7 +80,7 @@ public class PaymentServiceImpl implements PaymentService {
 
                 response.setStatus("success");
                 response.setMessage("Payment created successfully");
-                response.setRazorpayPaymentId(razorpayOrderId);
+                response.setRazorPayOrderId(razorpayOrderId);
                 response.setPaymentDate(paymentEntity.getPaymentDate());
             } catch (RazorpayException e) {
                 response.setStatus("error");
@@ -109,9 +110,9 @@ public class PaymentServiceImpl implements PaymentService {
         return signature;
     }
 
-    public boolean verifyRazorpaySignature(String razorPayOrderId, String razorPayPaymentId, String razorPaySignature) {
-        String generatedSignature = generateRazorpaySignature(razorPayOrderId, razorPayPaymentId);
-        return generatedSignature != null && generatedSignature.equals(razorPaySignature);
+    public boolean verifyRazorpaySignature(PaymentData paymentData) {
+        String generatedSignature = generateRazorpaySignature(paymentData.getRazorPayOrderId(), paymentData.getRazorPayPaymentId());
+        return generatedSignature != null && generatedSignature.equals(paymentData.getRazorPaySignature());
     }
 
 

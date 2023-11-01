@@ -11,7 +11,7 @@ public class PaymentResponse {
 
     private String message;
 
-    private String razorpayPaymentId;
+    private String razorPayOrderId;
 
     private Date paymentDate;
 

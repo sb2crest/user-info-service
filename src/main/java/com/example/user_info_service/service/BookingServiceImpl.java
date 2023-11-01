@@ -190,14 +190,11 @@ public class BookingServiceImpl implements BookingService {
 
         messageBody.append("</table>");
 
-        messageBody.append("<br><br><br>");
-
-        messageBody.append("<img src='cid:logoImage' width='150' height='75'>");
-        messageBody.append("<br>");
-        messageBody.append("<br>");
-        messageBody.append("<br>");
-        messageBody.append("<br>");
+        messageBody.append("<br><br><br><br>");
         messageBody.append("<p>Best Regards<br><strong>NanduBus.in</strong></p>");
+        messageBody.append("<br>");
+
+        messageBody.append("<img src='cid:logoImage' width='80' height='75'>");
         messageBody.append("</body></html>");
 
         helper.setTo(toEmailAddress);

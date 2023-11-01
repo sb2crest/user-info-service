@@ -114,6 +114,13 @@ class BookingControllerTest {
 
     }
 
+    @Test
+    void getInTouchTest() throws Exception {
+        mvc.perform(post("/getInTouch").content(TestUtil.convertObjectToJsonBytes(getUserData()))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
     private BookingPojo getBookingPojo() {
         BookingPojo bookingPojo = new BookingPojo();
         bookingPojo.setVehicleNumber("ka02h0886");
@@ -123,6 +130,15 @@ class BookingControllerTest {
         userPojo.setEmail("abc@gmail.com");
         bookingPojo.setUser(userPojo);
         return bookingPojo;
+    }
+
+    private UserData getUserData(){
+        UserData userData = new UserData();
+        userData.setName("abc");
+        userData.setEmail("abc@gmail.com");
+        userData.setMessage("success");
+        return userData;
+
     }
 
 }

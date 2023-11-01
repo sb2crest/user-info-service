@@ -1,6 +1,7 @@
 package com.example.user_info_service.controller;
 
 import com.example.user_info_service.model.TestUtil;
+import com.example.user_info_service.pojo.PaymentData;
 import com.example.user_info_service.pojo.PaymentPojo;
 import com.example.user_info_service.pojo.PaymentResponse;
 import com.example.user_info_service.service.PaymentService;
@@ -54,20 +55,18 @@ class PaymentControllerTest {
 
     @Test
     void verifySignatureWhenSignatureIsValid() throws Exception {
-        when(paymentService.verifyRazorpaySignature(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(true);
-        mvc.perform(post("/verifySignature").param("razorpayOrderId","123")
-                        .param("razorPayPaymentId","134")
-                        .param("signature","12233")
+        PaymentData paymentData = getPaymentData();
+        when(paymentService.verifyRazorpaySignature(Mockito.any())).thenReturn(true);
+        mvc.perform(post("/verifySignature").content(TestUtil.convertObjectToJsonBytes(paymentData))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
     @Test
     void verifySignatureWhenSignatureIsInvalid() throws Exception {
-        when(paymentService.verifyRazorpaySignature(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(false);
-        mvc.perform(post("/verifySignature").param("razorpayOrderId","123")
-                        .param("razorPayPaymentId","134")
-                        .param("signature","12233")
+        PaymentData paymentData = getPaymentData();
+        when(paymentService.verifyRazorpaySignature(Mockito.any())).thenReturn(false);
+        mvc.perform(post("/verifySignature").content(TestUtil.convertObjectToJsonBytes(paymentData))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -77,5 +76,13 @@ class PaymentControllerTest {
         paymentPojo.setBookingId("NB34ye");
         paymentPojo.setAmount(400);
         return paymentPojo;
+    }
+
+    private PaymentData getPaymentData(){
+        PaymentData  paymentData = new PaymentData();
+        paymentData.setRazorPayOrderId("abc");
+        paymentData.setRazorPayPaymentId("abd");
+        paymentData.setRazorPayPaymentId("xyz");
+        return paymentData;
     }
 }

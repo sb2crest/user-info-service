@@ -1,5 +1,6 @@
 package com.example.user_info_service.controller;
 
+import com.example.user_info_service.pojo.PaymentData;
 import com.example.user_info_service.pojo.PaymentPojo;
 import com.example.user_info_service.pojo.PaymentResponse;
 import com.example.user_info_service.service.PaymentService;
@@ -9,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -25,16 +25,14 @@ public class PaymentController {
 
     @PostMapping("/verifySignature")
     public ResponseEntity<String> verifySignature(
-            @RequestParam("razorpayOrderId") String razorPayOrderId,
-            @RequestParam("razorPayPaymentId") String razorPayPaymentId,
-            @RequestParam("signature") String signature) {
+            @RequestBody PaymentData paymentData) {
 
-        boolean isValid = paymentService.verifyRazorpaySignature(razorPayOrderId, razorPayPaymentId, signature);
+        boolean isValid = paymentService.verifyRazorpaySignature(paymentData);
 
         if (isValid) {
-            return ResponseEntity.ok("Signature is valid");
+            return ResponseEntity.ok("Payment Successful");
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Signature is not valid");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment Failed");
         }
     }
 
