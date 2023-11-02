@@ -11,4 +11,6 @@ public class PaymentData {
 
     private String razorPaySignature;
 
+    private String paymentStatus;
+
 }

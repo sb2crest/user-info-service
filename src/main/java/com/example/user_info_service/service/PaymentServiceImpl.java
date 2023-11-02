@@ -1,5 +1,3 @@
-
-
 package com.example.user_info_service.service;
 
 import com.example.user_info_service.entity.PaymentEntity;
@@ -21,10 +19,8 @@ import org.json.JSONObject;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Date;
 
 @Service
@@ -41,6 +37,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Value("${razorpay.api.key.secret}")
     private String keySecret;
+
+    private final String STATUS = "SUCCESS";
+    private final String BAD_STATUS = "FAILED";
 
     @Autowired
     BookingRepo bookingRepo;
@@ -93,17 +92,22 @@ public class PaymentServiceImpl implements PaymentService {
 
     }
 
-    public String generateRazorpaySignature(String razorPayOrderId, String razorPayPaymentId) {
+    public String generateRazorpaySignature(String razorPayOrderId, String razorPayPaymentId, String keySecret) {
         String signature = null;
         try {
-            String secret = keySecret;
-            String data = razorPayOrderId + "|" + razorPayPaymentId;
-            Mac sha256Hmac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-            sha256Hmac.init(secretKey);
+            String signatureData = razorPayOrderId + "|" + razorPayPaymentId;
+            Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secret_key = new SecretKeySpec(keySecret.getBytes(), "HmacSHA256");
+            sha256_HMAC.init(secret_key);
 
-            byte[] hmacData = sha256Hmac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            signature = Base64.getEncoder().encodeToString(hmacData);
+            byte[] bytes = sha256_HMAC.doFinal(signatureData.getBytes());
+
+            StringBuilder builder = new StringBuilder();
+            for (byte aByte : bytes) {
+                builder.append(String.format("%02x", aByte));
+            }
+
+            signature = builder.toString();
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             log.debug("Exception while generating signature " + e.getMessage());
         }
@@ -111,9 +115,27 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     public boolean verifyRazorpaySignature(PaymentData paymentData) {
-        String generatedSignature = generateRazorpaySignature(paymentData.getRazorPayOrderId(), paymentData.getRazorPayPaymentId());
-        return generatedSignature != null && generatedSignature.equals(paymentData.getRazorPaySignature());
+        String generatedSignature = generateRazorpaySignature(paymentData.getRazorPayOrderId(), paymentData.getRazorPayPaymentId(), keySecret);
+        PaymentEntity paymentEntity = paymentRepository.findBookingIdByRazorPayOrderId(paymentData.getRazorPayOrderId());
+        log.info("response:::::::::::{}",paymentEntity);
+
+        if (generatedSignature != null && generatedSignature.equals(paymentData.getRazorPaySignature())) {
+
+            paymentEntity.setRazorPayPaymentId(paymentData.getRazorPayPaymentId());
+            paymentEntity.setRazorPaySignature(paymentData.getRazorPaySignature());
+            paymentEntity.setPaymentStatus(STATUS);
+
+            paymentRepository.save(paymentEntity);
+            return true;
+
+        } else {
+
+            paymentEntity.setRazorPayPaymentId(paymentData.getRazorPayPaymentId());
+            paymentEntity.setRazorPaySignature(paymentData.getRazorPaySignature());
+            paymentEntity.setPaymentStatus(BAD_STATUS);
+
+            paymentRepository.save(paymentEntity);
+            return false;
+        }
     }
-
-
 }

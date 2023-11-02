@@ -30,6 +30,15 @@ public class PaymentEntity {
     @Column(name = "booking_id")
     private String bookingId;
 
+    @Column(name = "razorpay_payment_id")
+    private String razorPayPaymentId;
+
+    @Column(name = "razorpay_signature")
+    private String razorPaySignature;
+
+    @Column(name = "payment_status")
+    private String paymentStatus;
+
     @ManyToOne
     @JoinColumn(name = "booking_id",referencedColumnName = "booking_id", updatable = false, insertable = false)
     private BookingEntity bookingEntity;

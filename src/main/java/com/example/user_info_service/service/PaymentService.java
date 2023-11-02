@@ -8,7 +8,7 @@ import com.razorpay.RazorpayException;
 public interface PaymentService {
     PaymentResponse createPayment(PaymentPojo paymentPojo) throws RazorpayException;
 
-    String generateRazorpaySignature(String razorpayPaymentId, String bookingId);
+    String generateRazorpaySignature(String razorpayPaymentId, String bookingId,String keySecret);
 
     boolean verifyRazorpaySignature(PaymentData paymentData);
 }
