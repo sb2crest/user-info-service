@@ -33,9 +33,6 @@ public class PaymentEntity {
     @Column(name = "razorpay_payment_id")
     private String razorPayPaymentId;
 
-    @Column(name = "razorpay_signature")
-    private String razorPaySignature;
-
     @Column(name = "payment_status")
     private String paymentStatus;
 

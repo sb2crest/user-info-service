@@ -1,7 +1,7 @@
 package com.example.user_info_service.controller;
 
 import com.example.user_info_service.model.TestUtil;
-import com.example.user_info_service.pojo.*;
+import com.example.user_info_service.dto.*;
 import com.example.user_info_service.service.BookingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,9 +44,9 @@ class BookingControllerTest {
 
     @Test
     void testBookingVehicle() throws Exception {
-        BookingPojo bookingPojo = getBookingPojo();
+        BookingDto bookingDto = getBookingPojo();
         when(bookingService.bookingVehicle(Mockito.any())).thenReturn(new BookingResponse());
-        mvc.perform(post("/booking").content(TestUtil.convertObjectToJsonBytes(bookingPojo))
+        mvc.perform(post("/booking").content(TestUtil.convertObjectToJsonBytes(bookingDto))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
@@ -54,10 +54,9 @@ class BookingControllerTest {
 
     @Test
     void testBookingDetails() throws Exception {
-        BookingDetails bookingDetails = new BookingDetails();
 
-        when(bookingService.getBookingDetails(Mockito.any())).thenReturn(bookingDetails);
-        mvc.perform(get("/bookingDetails").param("bookingId", "1234")
+        when(bookingService.getBookingDetails(Mockito.any())).thenReturn(new BookingData());
+        mvc.perform(get("/bookingDetails").param("mobile", "1234")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
@@ -121,15 +120,15 @@ class BookingControllerTest {
                 .andExpect(status().isOk());
     }
 
-    private BookingPojo getBookingPojo() {
-        BookingPojo bookingPojo = new BookingPojo();
-        bookingPojo.setVehicleNumber("ka02h0886");
-        UserPojo userPojo = new UserPojo();
-        userPojo.setMobile("1234456671");
-        userPojo.setFirstName("abc");
-        userPojo.setEmail("abc@gmail.com");
-        bookingPojo.setUser(userPojo);
-        return bookingPojo;
+    private BookingDto getBookingPojo() {
+        BookingDto bookingDto = new BookingDto();
+        bookingDto.setVehicleNumber("ka02h0886");
+        UserDto userDto = new UserDto();
+        userDto.setMobile("1234456671");
+        userDto.setFirstName("abc");
+        userDto.setEmail("abc@gmail.com");
+        bookingDto.setUser(userDto);
+        return bookingDto;
     }
 
     private UserData getUserData(){

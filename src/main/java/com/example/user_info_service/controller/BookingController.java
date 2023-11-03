@@ -1,6 +1,6 @@
 package com.example.user_info_service.controller;
 
-import com.example.user_info_service.pojo.*;
+import com.example.user_info_service.dto.*;
 import com.example.user_info_service.service.BookingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +19,13 @@ public class BookingController {
     BookingService bookingService;
 
     @PostMapping("/booking")
-    public BookingResponse bookingVehicle(@RequestBody BookingPojo bookingPojo) throws ParseException {
-        return bookingService.bookingVehicle(bookingPojo);
+    public BookingResponse bookingVehicle(@RequestBody BookingDto bookingDto) throws ParseException {
+        return bookingService.bookingVehicle(bookingDto);
     }
 
     @GetMapping("/bookingDetails")
-    public ResponseEntity<BookingDetails> getBookingDetails(@RequestParam("bookingId") String bookingId) {
-        return new ResponseEntity<>(bookingService.getBookingDetails(bookingId), HttpStatus.OK);
+    public ResponseEntity<BookingData> getBookingDetails(@RequestParam("mobile") String mobile) {
+        return new ResponseEntity<>(bookingService.getBookingDetails(mobile), HttpStatus.OK);
     }
 
     @GetMapping("/confirm")
@@ -44,7 +44,7 @@ public class BookingController {
     }
 
     @PostMapping("/getVehicleAvailability")
-    public ResponseEntity<List<VehiclePojo>> getVehicleAvailability(@RequestBody VehiclesAvailable vehiclesAvailable) {
+    public ResponseEntity<List<VehicleDto>> getVehicleAvailability(@RequestBody VehiclesAvailable vehiclesAvailable) {
         return new ResponseEntity<>(bookingService.getVehicleAvailability(vehiclesAvailable), HttpStatus.OK);
     }
 

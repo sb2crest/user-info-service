@@ -1,7 +1,6 @@
-package com.example.user_info_service.pojo;
+package com.example.user_info_service.dto;
 
 import lombok.Data;
-import org.springframework.http.HttpStatus;
 
 @Data
 public class BookingResponse {

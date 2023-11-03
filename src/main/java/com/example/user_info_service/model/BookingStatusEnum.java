@@ -8,8 +8,9 @@ import java.util.Arrays;
 public enum BookingStatusEnum {
 
     ENQUIRY("E","Enquiry"),
-    CONFIRMED("C","Confirmed"),
-    DECLINED("D","Declined");
+    BOOKED("B","Booked"),
+    DECLINED("D","Declined"),
+    COMPLETED("C","Completed");
 
     private final String code;
     private final String desc;

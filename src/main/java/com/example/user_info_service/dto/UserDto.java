@@ -1,4 +1,4 @@
-package com.example.user_info_service.pojo;
+package com.example.user_info_service.dto;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserPojo {
+public class UserDto {
 
     @NonNull
     private String firstName;

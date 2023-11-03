@@ -1,4 +1,4 @@
-package com.example.user_info_service.pojo;
+package com.example.user_info_service.dto;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Setter
 @Getter
-public class BookingPojo {
+public class BookingDto {
 
     private String vehicleNumber;
 
@@ -16,7 +16,7 @@ public class BookingPojo {
 
     private LocalDate toDate;
 
-    private UserPojo user;
+    private UserDto user;
 
-    private SlotsPojo slots;
+    private SlotsDto slots;
 }

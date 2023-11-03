@@ -1,26 +1,19 @@
 package com.example.user_info_service.service;
 
-import com.example.user_info_service.pojo.PaymentPojo;
-import com.example.user_info_service.pojo.PaymentResponse;
+import com.example.user_info_service.dto.PaymentDto;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.PaymentRepository;
-import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 class PaymentServiceImplTest {
@@ -69,12 +62,12 @@ class PaymentServiceImplTest {
 //        assertEquals(paymentPojo.getBookingId(), response.getRazorpayPaymentId());
 //    }
 
-    private PaymentPojo getPaymentPojo() {
-        PaymentPojo paymentPojo = new PaymentPojo();
-        paymentPojo.setBookingId("NB34ye");
-        paymentPojo.setAmount(400);
-        paymentPojo.setMobile("123456789");
-        return paymentPojo;
+    private PaymentDto getPaymentPojo() {
+        PaymentDto paymentDto = new PaymentDto();
+        paymentDto.setBookingId("NB34ye");
+        paymentDto.setAmount(400);
+        paymentDto.setMobile("123456789");
+        return paymentDto;
     }
 
     public RazorpayClient getRazorpayClient() {

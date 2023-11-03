@@ -1,7 +1,7 @@
 package com.example.user_info_service.service;
 
 import com.example.user_info_service.entity.OTPEntity;
-import com.example.user_info_service.pojo.ValidateOTP;
+import com.example.user_info_service.dto.ValidateOTP;
 import com.example.user_info_service.repository.OTPRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

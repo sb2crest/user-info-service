@@ -1,11 +1,11 @@
-package com.example.user_info_service.pojo;
+package com.example.user_info_service.dto;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class SlotsPojo {
+public class SlotsDto {
 
     private String vehicleNumber;
 

@@ -1,9 +1,9 @@
 package com.example.user_info_service.controller;
 
-import com.example.user_info_service.pojo.BookingResponse;
-import com.example.user_info_service.pojo.PaymentData;
-import com.example.user_info_service.pojo.PaymentPojo;
-import com.example.user_info_service.pojo.PaymentResponse;
+import com.example.user_info_service.dto.BookingResponse;
+import com.example.user_info_service.dto.PaymentData;
+import com.example.user_info_service.dto.PaymentDto;
+import com.example.user_info_service.dto.PaymentResponse;
 import com.example.user_info_service.service.PaymentService;
 import com.razorpay.RazorpayException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +22,15 @@ public class PaymentController {
     PaymentService paymentService;
 
     @PostMapping("/createPayment")
-    ResponseEntity<PaymentResponse> createPayment(@RequestBody PaymentPojo paymentPojo) throws RazorpayException {
-        return new ResponseEntity<>(paymentService.createPayment(paymentPojo), HttpStatus.OK);
+    ResponseEntity<PaymentResponse> createPayment(@RequestBody PaymentDto paymentDto) throws RazorpayException {
+        return new ResponseEntity<>(paymentService.createPayment(paymentDto), HttpStatus.OK);
     }
 
     @PostMapping("/verifySignature")
     public ResponseEntity<BookingResponse> verifySignature(
             @RequestBody PaymentData paymentData) {
 
-        return new ResponseEntity<>(paymentService.verifyRazorpaySignature(paymentData), HttpStatus.OK);
+        return paymentService.verifyRazorpaySignature(paymentData);
     }
 
 }

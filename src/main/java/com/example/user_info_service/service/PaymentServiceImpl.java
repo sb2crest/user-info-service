@@ -3,10 +3,10 @@ package com.example.user_info_service.service;
 import com.example.user_info_service.entity.PaymentEntity;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
-import com.example.user_info_service.pojo.BookingResponse;
-import com.example.user_info_service.pojo.PaymentData;
-import com.example.user_info_service.pojo.PaymentPojo;
-import com.example.user_info_service.pojo.PaymentResponse;
+import com.example.user_info_service.dto.BookingResponse;
+import com.example.user_info_service.dto.PaymentData;
+import com.example.user_info_service.dto.PaymentDto;
+import com.example.user_info_service.dto.PaymentResponse;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.PaymentRepository;
 import com.razorpay.Order;
@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -54,18 +55,18 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public PaymentResponse createPayment(PaymentPojo paymentPojo) {
+    public PaymentResponse createPayment(PaymentDto paymentDto) {
 
         PaymentResponse response = new PaymentResponse();
 
-        Boolean validate = bookingRepo.validateUsingIdAndMobile(paymentPojo.getBookingId(), paymentPojo.getMobile());
+        Boolean validate = bookingRepo.validateUsingIdAndMobile(paymentDto.getBookingId(), paymentDto.getMobile());
         if (validate) {
 
             try {
                 razorPayClient = new RazorpayClient(keyID, keySecret);
 
                 JSONObject orderRequest = new JSONObject();
-                orderRequest.put("amount", paymentPojo.getAmount());
+                orderRequest.put("amount", paymentDto.getAmount());
                 orderRequest.put("currency", "INR");
                 orderRequest.put("receipt", "payment_receipt_" + System.currentTimeMillis());
 
@@ -74,9 +75,9 @@ public class PaymentServiceImpl implements PaymentService {
 
                 PaymentEntity paymentEntity = new PaymentEntity();
                 paymentEntity.setRazorPayOrderId(razorpayOrderId);
-                paymentEntity.setAmount(paymentPojo.getAmount());
+                paymentEntity.setAmount(paymentDto.getAmount());
                 paymentEntity.setPaymentDate(new Date());
-                paymentEntity.setBookingId(paymentPojo.getBookingId());
+                paymentEntity.setBookingId(paymentDto.getBookingId());
                 paymentRepository.save(paymentEntity);
 
                 response.setStatus("success");
@@ -116,7 +117,7 @@ public class PaymentServiceImpl implements PaymentService {
         return signature;
     }
 
-    public BookingResponse verifyRazorpaySignature(PaymentData paymentData) {
+    public ResponseEntity<BookingResponse> verifyRazorpaySignature(PaymentData paymentData) {
         String generatedSignature = generateRazorpaySignature(paymentData.getRazorPayOrderId(), paymentData.getRazorPayPaymentId(), keySecret);
         PaymentEntity paymentEntity = paymentRepository.findBookingIdByRazorPayOrderId(paymentData.getRazorPayOrderId());
         log.info("response:::::::::::{}",paymentEntity);
@@ -126,23 +127,21 @@ public class PaymentServiceImpl implements PaymentService {
         if (generatedSignature != null && generatedSignature.equals(paymentData.getRazorPaySignature())) {
 
             paymentEntity.setRazorPayPaymentId(paymentData.getRazorPayPaymentId());
-            paymentEntity.setRazorPaySignature(paymentData.getRazorPaySignature());
             paymentEntity.setPaymentStatus(STATUS);
 
             paymentRepository.save(paymentEntity);
             bookingResponse.setMessage("Payment Successful");
             bookingResponse.setStatusCode(HttpStatus.OK.value());
-            return bookingResponse;
+            return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
         } else {
 
             paymentEntity.setRazorPayPaymentId(paymentData.getRazorPayPaymentId());
-            paymentEntity.setRazorPaySignature(paymentData.getRazorPaySignature());
             paymentEntity.setPaymentStatus(BAD_STATUS);
 
             paymentRepository.save(paymentEntity);
             bookingResponse.setMessage("Payment Failed");
             bookingResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            return bookingResponse;
+            return new ResponseEntity<>(bookingResponse, HttpStatus.PAYMENT_REQUIRED);
         }
     }
 }

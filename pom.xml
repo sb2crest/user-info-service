@@ -225,7 +225,7 @@
 						<exclude>**/config/**</exclude>
 						<exclude>**/model/**</exclude>
 						<exclude>**/entity/**</exclude>
-						<exclude>**/pojo/**</exclude>
+						<exclude>**/dto/**</exclude>
 						<exclude>**/user_info_service/exception/**</exclude>
 					</excludes>
 				</configuration>

@@ -1,15 +1,14 @@
 package com.example.user_info_service.service;
 
-import com.example.user_info_service.pojo.*;
+import com.example.user_info_service.dto.*;
 
-import javax.mail.MessagingException;
 import java.text.ParseException;
 import java.util.List;
 
 public interface BookingService {
-    BookingResponse bookingVehicle(BookingPojo bookingPojo) throws ParseException;
+    BookingResponse bookingVehicle(BookingDto bookingDto) throws ParseException;
 
-    BookingDetails getBookingDetails(String bookingId);
+    BookingData getBookingDetails(String mobile);
 
     String confirmBooking(String bookingId);
 
@@ -17,7 +16,7 @@ public interface BookingService {
 
     VehicleBooked getBookedSlotsByVehicleNumber(String vehicleNUmber);
 
-    List<VehiclePojo> getVehicleAvailability(VehiclesAvailable vehiclesAvailable);
+    List<VehicleDto> getVehicleAvailability(VehiclesAvailable vehiclesAvailable);
 
     BookingInfo getBookingInfoByBookingId(String bookingId);
 

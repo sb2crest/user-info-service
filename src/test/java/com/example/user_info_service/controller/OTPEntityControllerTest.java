@@ -1,7 +1,7 @@
 package com.example.user_info_service.controller;
 
 import com.example.user_info_service.model.TestUtil;
-import com.example.user_info_service.pojo.ValidateOTP;
+import com.example.user_info_service.dto.ValidateOTP;
 import com.example.user_info_service.service.OTPService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

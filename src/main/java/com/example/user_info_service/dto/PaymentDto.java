@@ -1,9 +1,9 @@
-package com.example.user_info_service.pojo;
+package com.example.user_info_service.dto;
 
 import lombok.Data;
 
 @Data
-public class PaymentPojo {
+public class PaymentDto {
 
     private String bookingId;
 

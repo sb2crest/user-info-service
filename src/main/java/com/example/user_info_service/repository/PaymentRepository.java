@@ -12,4 +12,7 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
   @Query("SELECT p FROM PaymentEntity p WHERE p.razorPayOrderId = :razorPayOrderId")
   PaymentEntity findBookingIdByRazorPayOrderId(@Param("razorPayOrderId") String razorPayOrderId);
 
+  @Query("SELECT p FROM PaymentEntity p WHERE p.bookingId = :bookingId")
+  PaymentEntity findByBookingId( String bookingId);
+
 }

@@ -4,21 +4,25 @@ import com.example.user_info_service.entity.BookingEntity;
 import com.example.user_info_service.entity.SlotsEntity;
 import com.example.user_info_service.entity.UserEntity;
 import com.example.user_info_service.entity.VehicleEntity;
+import com.example.user_info_service.exception.ResStatus;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.exception.BookingException;
-import com.example.user_info_service.pojo.*;
+import com.example.user_info_service.dto.*;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.SlotsRepo;
 import com.example.user_info_service.repository.UserRepo;
 import com.example.user_info_service.repository.VehicleInfoRepo;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -41,9 +45,17 @@ class BookingServiceImplTest {
     BookingRepo bookingRepo;
     @Mock
     VehicleInfoRepo vehicleInfoRepo;
-
+    @Mock
+    private JavaMailSender javaMailSender;
     @Mock
     BookingEntity bookingEntity;
+
+    @BeforeEach
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+
+        ReflectionTestUtils.setField(bookingService, "toEmailAddress", "sender");
+    }
 
     @Test
     void bookingVehicle() throws ParseException {
@@ -57,8 +69,8 @@ class BookingServiceImplTest {
                 toDateCaptor.capture())
         ).thenReturn(false);
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
-        BookingPojo bookingPojo = createBookingPojo();
-        BookingResponse bookingResponse = bookingService.bookingVehicle(bookingPojo);
+        BookingDto bookingDto = createBookingPojo();
+        BookingResponse bookingResponse = bookingService.bookingVehicle(bookingDto);
 
         assertEquals(200 , bookingResponse.getStatusCode());
     }
@@ -75,9 +87,9 @@ class BookingServiceImplTest {
                 toDateCaptor.capture())
         ).thenReturn(false);
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
-        BookingPojo bookingPojo = createBookingPojo();
-        bookingPojo.getUser().setMobile("");
-        assertThrows(BookingException.class, () -> bookingService.bookingVehicle(bookingPojo));
+        BookingDto bookingDto = createBookingPojo();
+        bookingDto.getUser().setMobile("");
+        assertThrows(BookingException.class, () -> bookingService.bookingVehicle(bookingDto));
 
     }
 
@@ -93,9 +105,9 @@ class BookingServiceImplTest {
                 toDateCaptor.capture())
         ).thenReturn(false);
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
-        BookingPojo bookingPojo = createBookingPojo();
-        bookingPojo.getUser().setMobile("1234");
-        assertThrows(BookingException.class, () -> bookingService.bookingVehicle(bookingPojo));
+        BookingDto bookingDto = createBookingPojo();
+        bookingDto.getUser().setMobile("1234");
+        assertThrows(BookingException.class, () -> bookingService.bookingVehicle(bookingDto));
 
     }
 
@@ -111,9 +123,9 @@ class BookingServiceImplTest {
                 toDateCaptor.capture())
         ).thenReturn(false);
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
-        BookingPojo bookingPojo = createBookingPojo();
-        bookingPojo.getUser().setEmail(null);
-        String bookingId = bookingService.bookingVehicle(bookingPojo).getBookingId();
+        BookingDto bookingDto = createBookingPojo();
+        bookingDto.getUser().setEmail(null);
+        String bookingId = bookingService.bookingVehicle(bookingDto).getBookingId();
 
         assertNotNull(bookingId);
     }
@@ -130,9 +142,9 @@ class BookingServiceImplTest {
                 toDateCaptor.capture())
         ).thenReturn(false);
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
-        BookingPojo bookingPojo = createBookingPojo();
-        bookingPojo.getUser().setEmail("abc.com");
-        assertThrows(BookingException.class, () -> bookingService.bookingVehicle(bookingPojo));
+        BookingDto bookingDto = createBookingPojo();
+        bookingDto.getUser().setEmail("abc.com");
+        assertThrows(BookingException.class, () -> bookingService.bookingVehicle(bookingDto));
 
     }
 
@@ -148,8 +160,8 @@ class BookingServiceImplTest {
                 toDateCaptor.capture())
         ).thenReturn(false);
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(null);
-        BookingPojo bookingPojo = createBookingPojo();
-        String bookingId = bookingService.bookingVehicle(bookingPojo).getBookingId();
+        BookingDto bookingDto = createBookingPojo();
+        String bookingId = bookingService.bookingVehicle(bookingDto).getBookingId();
 
         assertNotNull(bookingId);
 
@@ -175,8 +187,8 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(getBookingEntity());
-        assertNotNull(bookingService.getBookingDetails("123"));
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        assertNotNull(bookingService.getBookingDetails("1234567890"));
     }
 
     @Test
@@ -184,8 +196,17 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(null);
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(getBookingEntity());
-        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("123"));
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
+    }
+
+    @Test
+    void getBookingDetailsWhenNoBookingDetailsFound() {
+        when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
+        when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(null);
+        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
     }
 
     @Test
@@ -193,8 +214,8 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(null);
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(getBookingEntity());
-        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("123"));
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
     }
 
     @Test
@@ -202,14 +223,14 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(null);
-        when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(getBookingEntity());
-        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("123"));
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
     }
 
     @Test
-    void getBookingDetailsWhenNoMatchingDetailsFoundForBookingId() {
-        when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(null);
-        assertThrows(BookingException.class, () -> bookingService.getBookingDetails("123"));
+    void getBookingDetailsWhenNoMatchingDetailsFoundForMobileNumber() {
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(null);
+        assertThrows(BookingException.class, () -> bookingService.getBookingDetails("1234567890"));
     }
 
     @Test
@@ -217,9 +238,15 @@ class BookingServiceImplTest {
         BookingEntity bookingEntity = getBookingEntity();
         when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(bookingEntity);
         String result = bookingService.confirmBooking("123");
-        assertEquals(BookingStatusEnum.CONFIRMED.getCode(), bookingEntity.getBookingStatus());
+        assertEquals(BookingStatusEnum.BOOKED.getCode(), bookingEntity.getBookingStatus());
         verify(bookingRepo, times(1)).save(bookingEntity);
         assertEquals("Booking is Confirmed", result);
+    }
+
+    @Test
+    void testConfirmBookingWhenBookingEntityIsNull1() {
+        when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(null);
+        assertThrows(BookingException.class, () -> bookingService.confirmBooking("123"));
     }
 
     @Test
@@ -260,6 +287,18 @@ class BookingServiceImplTest {
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
         BookingInfo bookingInfoByBookingId = bookingService.getBookingInfoByBookingId("123");
         assertEquals("ka02m1234" , bookingInfoByBookingId.getVehicleNumber());
+    }
+
+    @Test
+    void testGetInTouch() throws Exception {
+        UserData userData = new UserData();
+        userData.setName("John Doe");
+        userData.setEmail("johndoe@gmail.com");
+        userData.setMessage("Hello, this is a test message.");
+
+        when(javaMailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
+        doNothing().when(javaMailSender).send(any(MimeMessage.class));
+        bookingService.getInTouch(userData);
     }
 
     VehiclesAvailable getVehiclesAvailable() {
@@ -318,25 +357,25 @@ class BookingServiceImplTest {
         return bookingEntity;
     }
 
-    private BookingPojo createBookingPojo() {
-        BookingPojo bookingPojo = new BookingPojo();
-        bookingPojo.setFromDate(LocalDate.now());
-        bookingPojo.setToDate(LocalDate.now());
-        bookingPojo.setVehicleNumber("ka02m1234");
-        UserPojo userPojo = new UserPojo();
-        userPojo.setMobile("1234456671");
-        userPojo.setFirstName("abc");
-        userPojo.setMiddleName("abc");
-        userPojo.setMiddleName("abc");
-        userPojo.setEmail("abc@gmail.com");
-        bookingPojo.setUser(userPojo);
-        SlotsPojo slotsPojo = new SlotsPojo();
-        slotsPojo.setVehicleNumber("ka02m1234");
-        slotsPojo.setFromDate("12-02-2333");
-        slotsPojo.setToDate("12-02-2333");
-        bookingPojo.setSlots(slotsPojo);
+    private BookingDto createBookingPojo() {
+        BookingDto bookingDto = new BookingDto();
+        bookingDto.setFromDate(LocalDate.now());
+        bookingDto.setToDate(LocalDate.now());
+        bookingDto.setVehicleNumber("ka02m1234");
+        UserDto userDto = new UserDto();
+        userDto.setMobile("1234456671");
+        userDto.setFirstName("abc");
+        userDto.setMiddleName("abc");
+        userDto.setMiddleName("abc");
+        userDto.setEmail("abc@gmail.com");
+        bookingDto.setUser(userDto);
+        SlotsDto slotsDto = new SlotsDto();
+        slotsDto.setVehicleNumber("ka02m1234");
+        slotsDto.setFromDate("12-02-2333");
+        slotsDto.setToDate("12-02-2333");
+        bookingDto.setSlots(slotsDto);
 
-        return bookingPojo;
+        return bookingDto;
     }
 
     private BookingResponse getBookingResponse(){

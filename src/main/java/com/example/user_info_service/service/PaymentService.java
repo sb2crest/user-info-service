@@ -1,15 +1,16 @@
 package com.example.user_info_service.service;
 
-import com.example.user_info_service.pojo.BookingResponse;
-import com.example.user_info_service.pojo.PaymentData;
-import com.example.user_info_service.pojo.PaymentPojo;
-import com.example.user_info_service.pojo.PaymentResponse;
+import com.example.user_info_service.dto.BookingResponse;
+import com.example.user_info_service.dto.PaymentData;
+import com.example.user_info_service.dto.PaymentDto;
+import com.example.user_info_service.dto.PaymentResponse;
 import com.razorpay.RazorpayException;
+import org.springframework.http.ResponseEntity;
 
 public interface PaymentService {
-    PaymentResponse createPayment(PaymentPojo paymentPojo) throws RazorpayException;
+    PaymentResponse createPayment(PaymentDto paymentDto) throws RazorpayException;
 
     String generateRazorpaySignature(String razorpayPaymentId, String bookingId,String keySecret);
 
-    BookingResponse verifyRazorpaySignature(PaymentData paymentData);
+    ResponseEntity<BookingResponse> verifyRazorpaySignature(PaymentData paymentData);
 }

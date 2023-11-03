@@ -1,18 +1,12 @@
 package com.example.user_info_service.service;
 
-import com.example.user_info_service.entity.BookingEntity;
-import com.example.user_info_service.entity.SlotsEntity;
-import com.example.user_info_service.entity.UserEntity;
-import com.example.user_info_service.entity.VehicleEntity;
+import com.example.user_info_service.entity.*;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.model.GmailValidator;
-import com.example.user_info_service.pojo.*;
-import com.example.user_info_service.repository.BookingRepo;
-import com.example.user_info_service.repository.SlotsRepo;
-import com.example.user_info_service.repository.UserRepo;
-import com.example.user_info_service.repository.VehicleInfoRepo;
+import com.example.user_info_service.dto.*;
+import com.example.user_info_service.repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +15,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
 import java.io.File;
@@ -37,12 +30,17 @@ public class BookingServiceImpl implements BookingService {
 
     @Autowired
     UserRepo userRepo;
+
     @Autowired
     SlotsRepo slotsRepo;
+
     @Autowired
     BookingRepo bookingRepo;
+
     @Autowired
     VehicleInfoRepo vehicleInfoRepo;
+    @Autowired
+    PaymentRepository paymentRepository;
 
     @Autowired
     private JavaMailSender javaMailSender;
@@ -55,17 +53,18 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
-    public BookingResponse bookingVehicle(BookingPojo bookingPojo) throws ParseException {
-        checkUserDetails(bookingPojo.getUser());
+    public BookingResponse bookingVehicle(BookingDto bookingDto) throws ParseException {
+        userMobileValidation(bookingDto.getUser().getMobile());
+        userEmailValidation(bookingDto.getUser().getEmail());
 
         BookingResponse bookingResponse = new BookingResponse();
         BookingEntity bookingEntity = new BookingEntity();
         SlotsEntity slotsEntity = new SlotsEntity();
 
-        boolean vehicleAvailability = slotsRepo.findVehicleAvailabilityOnRequiredDate(bookingPojo.getVehicleNumber(), bookingPojo.getFromDate(), bookingPojo.getToDate());
+        boolean vehicleAvailability = slotsRepo.findVehicleAvailabilityOnRequiredDate(bookingDto.getVehicleNumber(), bookingDto.getFromDate(), bookingDto.getToDate());
         if (!vehicleAvailability) {
-            saveUser(bookingPojo);
-            saveBooking(bookingEntity, bookingPojo);
+            saveUser(bookingDto);
+            saveBooking(bookingEntity, bookingDto);
             saveSlot(slotsEntity, bookingEntity);
         } else {
             bookingResponse.setBookingId(null);
@@ -79,15 +78,13 @@ public class BookingServiceImpl implements BookingService {
         return bookingResponse;
     }
 
-
-    private void checkUserDetails(UserPojo userPojo) {
-        if (userPojo.getMobile().isEmpty()) {
+    private void userMobileValidation(String mobile) {
+        if (mobile.isEmpty()) {
             throw new BookingException(ResStatus.ENTER_NUMBER);
         }
-        if (userPojo.getMobile().length() != 10) {
+        if (mobile.length() != 10) {
             throw new BookingException(ResStatus.MOBILE_DIGIT);
         }
-        userEmailValidation(userPojo.getEmail());
     }
 
     private void userEmailValidation(String email) {
@@ -96,12 +93,12 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void saveBooking(BookingEntity bookingEntity, BookingPojo bookingPojo) {
-        bookingEntity.setVehicleNumber(bookingPojo.getVehicleNumber());
-        bookingEntity.setFromDate(bookingPojo.getFromDate());
-        bookingEntity.setToDate(bookingPojo.getToDate());
+    private void saveBooking(BookingEntity bookingEntity, BookingDto bookingDto) {
+        bookingEntity.setVehicleNumber(bookingDto.getVehicleNumber());
+        bookingEntity.setFromDate(bookingDto.getFromDate());
+        bookingEntity.setToDate(bookingDto.getToDate());
         bookingEntity.setBookingId(generateBookingId());
-        bookingEntity.setMobile(bookingPojo.getUser().getMobile());
+        bookingEntity.setMobile(bookingDto.getUser().getMobile());
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
         bookingEntity.setBookingDate(LocalDate.now());
         bookingRepo.save(bookingEntity);
@@ -116,15 +113,15 @@ public class BookingServiceImpl implements BookingService {
         slotsRepo.save(slotsEntity);
     }
 
-    private void saveUser(BookingPojo bookingPojo) {
-        UserEntity user = userRepo.getUserByMobileNumber(bookingPojo.getUser().getMobile());
+    private void saveUser(BookingDto bookingDto) {
+        UserEntity user = userRepo.getUserByMobileNumber(bookingDto.getUser().getMobile());
         if (user == null) {
             UserEntity userEntity = new UserEntity();
-            userEntity.setFirstName(bookingPojo.getUser().getFirstName());
-            userEntity.setMiddleName(bookingPojo.getUser().getMiddleName());
-            userEntity.setLastName(bookingPojo.getUser().getLastName());
-            userEntity.setEmail(bookingPojo.getUser().getEmail());
-            userEntity.setMobile(bookingPojo.getUser().getMobile());
+            userEntity.setFirstName(bookingDto.getUser().getFirstName());
+            userEntity.setMiddleName(bookingDto.getUser().getMiddleName());
+            userEntity.setLastName(bookingDto.getUser().getLastName());
+            userEntity.setEmail(bookingDto.getUser().getEmail());
+            userEntity.setMobile(bookingDto.getUser().getMobile());
             userRepo.save(userEntity);
         }
     }
@@ -140,14 +137,41 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDetails getBookingDetails(String bookingId) {
-        BookingEntity bookingEntity = bookingRepo.getByBookingId(bookingId);
-        validateBookingEntity(bookingEntity);
-        BookingDetails bookingDetails = new BookingDetails();
-        getUser(bookingEntity, bookingDetails);
-        getSlot(bookingId, bookingDetails);
-        getVehicleDetails(bookingDetails);
-        return bookingDetails;
+    public BookingData getBookingDetails(String mobile) {
+        BookingData bookingData = new BookingData();
+        List<BookingDetails> enquiryAndBookedList = new ArrayList<>();
+        List<BookingDetails> historyList = new ArrayList<>();
+
+        userMobileValidation(mobile);
+
+        List<BookingEntity> bookingEntityList = bookingRepo.getByMobileNumber(mobile);
+        validateBookingEntityList(bookingEntityList);
+        for (BookingEntity bookingEntity : bookingEntityList) {
+            BookingDetails bookingDetails = new BookingDetails();
+            getBookingData(bookingDetails, bookingEntity);
+            getUser(bookingEntity, bookingDetails);
+            getSlot(bookingEntity.getBookingId(), bookingDetails);
+            getVehicleDetails(bookingDetails, bookingEntity.getVehicleNumber());
+            if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.ENQUIRY.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
+                enquiryAndBookedList.add(bookingDetails);
+            }
+            else {
+                historyList.add(bookingDetails);
+            }
+        }
+        bookingData.setEnquiryAndBookedList(enquiryAndBookedList);
+        bookingData.setHistoryList(historyList);
+        return bookingData;
+    }
+
+    private void getBookingData(BookingDetails bookingDetails, BookingEntity bookingEntity) {
+        bookingDetails.setBookingId(bookingEntity.getBookingId());
+        bookingDetails.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
+        bookingDetails.setBookingDate(bookingEntity.getBookingDate());
+        if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
+            PaymentEntity paymentEntity = paymentRepository.findByBookingId(bookingDetails.getBookingId());
+            bookingDetails.setAmountPaid(paymentEntity.getAmount());
+        }
     }
 
     @Override
@@ -221,7 +245,7 @@ public class BookingServiceImpl implements BookingService {
     public String confirmBooking(String bookingId) {
         BookingEntity bookingEntity = bookingRepo.getByBookingId(bookingId);
         validateBookingEntity(bookingEntity);
-        bookingEntity.setBookingStatus(BookingStatusEnum.CONFIRMED.getCode());
+        bookingEntity.setBookingStatus(BookingStatusEnum.BOOKED.getCode());
         bookingRepo.save(bookingEntity);
         return "Booking is Confirmed";
     }
@@ -264,25 +288,25 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<VehiclePojo> getVehicleAvailability(VehiclesAvailable vehiclesAvailable) {
-        List<VehiclePojo> vehiclePojos = new ArrayList<>();
+    public List<VehicleDto> getVehicleAvailability(VehiclesAvailable vehiclesAvailable) {
+        List<VehicleDto> vehicleDtos = new ArrayList<>();
         List<String> unavailableVehicleList = slotsRepo.getUnavailableList(vehiclesAvailable.getFromDate(), vehiclesAvailable.getToDate());
         List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(unavailableVehicleList, vehiclesAvailable.getIsAC(), vehiclesAvailable.getIsSleeper());
-        getVehiclePojo(vehiclePojos, vehicleEntities);
-        return vehiclePojos;
+        getVehiclePojo(vehicleDtos, vehicleEntities);
+        return vehicleDtos;
 
     }
 
-    private void getVehiclePojo(List<VehiclePojo> vehiclePojos, List<VehicleEntity> vehicleEntities) {
+    private void getVehiclePojo(List<VehicleDto> vehicleDtos, List<VehicleEntity> vehicleEntities) {
         for (VehicleEntity vehicleEntity : vehicleEntities) {
-            VehiclePojo vehiclePojo = new VehiclePojo();
-            vehiclePojo.setSeatCapacity(vehicleEntity.getSeatCapacity());
-            vehiclePojo.setVehicleNumber(vehicleEntity.getVehicleNumber());
-            vehiclePojo.setImageUrl(vehicleEntity.getS3ImageUrl());
-            vehiclePojo.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
-            vehiclePojo.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
+            VehicleDto vehicleDto = new VehicleDto();
+            vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
+            vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
+            vehicleDto.setImageUrl(vehicleEntity.getS3ImageUrl());
+            vehicleDto.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
+            vehicleDto.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
 
-            vehiclePojos.add(vehiclePojo);
+            vehicleDtos.add(vehicleDto);
         }
     }
 
@@ -298,43 +322,46 @@ public class BookingServiceImpl implements BookingService {
         return inBetweenDates;
     }
 
-    private void getVehicleDetails(BookingDetails bookingDetails) {
-        VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingDetails.getSlots().getVehicleNumber());
+    private void getVehicleDetails(BookingDetails bookingDetails, String vehicleNumber) {
+        VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(vehicleNumber);
         validateVehicleEntity(vehicleEntity);
-        VehiclePojo vehiclePojo = new VehiclePojo();
-        vehiclePojo.setVehicleNumber(vehicleEntity.getVehicleNumber());
-        vehiclePojo.setSeatCapacity(vehicleEntity.getSeatCapacity());
-        vehiclePojo.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
-        vehiclePojo.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
-        vehiclePojo.setImageUrl(vehicleEntity.getS3ImageUrl());
-        bookingDetails.setVehicle(vehiclePojo);
+        VehicleDto vehicleDto = new VehicleDto();
+        vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
+        vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
+        vehicleDto.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
+        vehicleDto.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
+        bookingDetails.setVehicle(vehicleDto);
     }
 
     private void getSlot(String bookingId, BookingDetails bookingDetails) {
         SlotsEntity slotsEntity = slotsRepo.findByBookingId(bookingId);
         validateSlotEntity(slotsEntity);
-        SlotsPojo slotsPojo = new SlotsPojo();
-        slotsPojo.setVehicleNumber(slotsEntity.getVehicleNumber());
-        slotsPojo.setFromDate(localDateFormat.format(slotsEntity.getFromDate()));
-        slotsPojo.setToDate(localDateFormat.format(slotsEntity.getToDate()));
-        bookingDetails.setSlots(slotsPojo);
+        SlotsDto slotsDto = new SlotsDto();
+        slotsDto.setFromDate(localDateFormat.format(slotsEntity.getFromDate()));
+        slotsDto.setToDate(localDateFormat.format(slotsEntity.getToDate()));
+        bookingDetails.setSlots(slotsDto);
     }
 
     private void getUser(BookingEntity bookingEntity, BookingDetails bookingDetails) {
         UserEntity user = userRepo.getUserByMobileNumber(bookingEntity.getMobile());
         validateUserEntity(user);
-        UserPojo userPojo = new UserPojo();
-        userPojo.setMobile(user.getMobile());
-        userPojo.setFirstName(user.getFirstName());
-        userPojo.setMiddleName(user.getMiddleName());
-        userPojo.setLastName(user.getLastName());
-        userPojo.setEmail(user.getEmail());
-        bookingDetails.setUser(userPojo);
+        UserDto userDto = new UserDto();
+        userDto.setFirstName(user.getFirstName());
+        userDto.setMiddleName(user.getMiddleName());
+        userDto.setLastName(user.getLastName());
+        userDto.setEmail(user.getEmail());
+        bookingDetails.setUser(userDto);
     }
 
     private void validateBookingEntity(BookingEntity bookingEntity) {
         if (bookingEntity == null) {
             throw new BookingException(ResStatus.BOOKING_NOT_FOUND);
+        }
+    }
+
+    private void validateBookingEntityList(List<BookingEntity> bookingEntityList) {
+        if (bookingEntityList == null) {
+            throw new BookingException(ResStatus.BOOKING_DATA_NOT_FOUND_WITH_MOBILE);
         }
     }
 
