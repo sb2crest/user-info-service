@@ -1,5 +1,6 @@
 package com.example.user_info_service.controller;
 
+import com.example.user_info_service.pojo.BookingResponse;
 import com.example.user_info_service.pojo.PaymentData;
 import com.example.user_info_service.pojo.PaymentPojo;
 import com.example.user_info_service.pojo.PaymentResponse;
@@ -26,16 +27,10 @@ public class PaymentController {
     }
 
     @PostMapping("/verifySignature")
-    public ResponseEntity<String> verifySignature(
+    public ResponseEntity<BookingResponse> verifySignature(
             @RequestBody PaymentData paymentData) {
 
-        boolean isValid = paymentService.verifyRazorpaySignature(paymentData);
-
-        if (isValid) {
-            return ResponseEntity.ok("Payment Successful");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment Failed");
-        }
+        return new ResponseEntity<>(paymentService.verifyRazorpaySignature(paymentData), HttpStatus.OK);
     }
 
 }

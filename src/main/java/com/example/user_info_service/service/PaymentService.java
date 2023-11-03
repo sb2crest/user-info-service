@@ -1,5 +1,6 @@
 package com.example.user_info_service.service;
 
+import com.example.user_info_service.pojo.BookingResponse;
 import com.example.user_info_service.pojo.PaymentData;
 import com.example.user_info_service.pojo.PaymentPojo;
 import com.example.user_info_service.pojo.PaymentResponse;
@@ -10,5 +11,5 @@ public interface PaymentService {
 
     String generateRazorpaySignature(String razorpayPaymentId, String bookingId,String keySecret);
 
-    boolean verifyRazorpaySignature(PaymentData paymentData);
+    BookingResponse verifyRazorpaySignature(PaymentData paymentData);
 }

@@ -3,6 +3,7 @@ package com.example.user_info_service.service;
 import com.example.user_info_service.entity.PaymentEntity;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
+import com.example.user_info_service.pojo.BookingResponse;
 import com.example.user_info_service.pojo.PaymentData;
 import com.example.user_info_service.pojo.PaymentPojo;
 import com.example.user_info_service.pojo.PaymentResponse;
@@ -12,6 +13,7 @@ import com.razorpay.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -114,11 +116,13 @@ public class PaymentServiceImpl implements PaymentService {
         return signature;
     }
 
-    public boolean verifyRazorpaySignature(PaymentData paymentData) {
+    public BookingResponse verifyRazorpaySignature(PaymentData paymentData) {
         String generatedSignature = generateRazorpaySignature(paymentData.getRazorPayOrderId(), paymentData.getRazorPayPaymentId(), keySecret);
         PaymentEntity paymentEntity = paymentRepository.findBookingIdByRazorPayOrderId(paymentData.getRazorPayOrderId());
         log.info("response:::::::::::{}",paymentEntity);
 
+        BookingResponse bookingResponse = new BookingResponse();
+        bookingResponse.setBookingId(paymentEntity.getBookingId());
         if (generatedSignature != null && generatedSignature.equals(paymentData.getRazorPaySignature())) {
 
             paymentEntity.setRazorPayPaymentId(paymentData.getRazorPayPaymentId());
@@ -126,8 +130,9 @@ public class PaymentServiceImpl implements PaymentService {
             paymentEntity.setPaymentStatus(STATUS);
 
             paymentRepository.save(paymentEntity);
-            return true;
-
+            bookingResponse.setMessage("Payment Successful");
+            bookingResponse.setStatusCode(HttpStatus.OK.value());
+            return bookingResponse;
         } else {
 
             paymentEntity.setRazorPayPaymentId(paymentData.getRazorPayPaymentId());
@@ -135,7 +140,9 @@ public class PaymentServiceImpl implements PaymentService {
             paymentEntity.setPaymentStatus(BAD_STATUS);
 
             paymentRepository.save(paymentEntity);
-            return false;
+            bookingResponse.setMessage("Payment Failed");
+            bookingResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+            return bookingResponse;
         }
     }
 }
