@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import javax.mail.internet.MimeMessage;
-import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -35,6 +34,9 @@ public class TomorrowsBooking {
 
     @Value("${mail.to.username}")
     private String toEmailAddress;
+
+    @Value("${nandu.bus.image}")
+    private String logo;
 
     private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
@@ -97,6 +99,13 @@ public class TomorrowsBooking {
             messageBody.append("There is no Booking Details found on  this date.");
 
         }
+
+        messageBody.append("<br><br><br><br>");
+        messageBody.append("<p>Best Regards<br><strong>NanduBus.in</strong></p>");
+        messageBody.append("<br>");
+
+        messageBody.append("<img src='").append(logo).append("' width='80' height='75'>");
+
         helper.setTo(toEmailAddress);
         helper.setSubject("Pay attention Booking Details of " + format.format(tomorrow));
         helper.setText(messageBody.toString(), true);
@@ -105,8 +114,6 @@ public class TomorrowsBooking {
     }
 
     private void sendEmailToUser(UserEntity user, BookingEntity booking, VehicleEntity vehicle) throws Exception {
-
-        String localLogoPath = System.getProperty("user.dir") + "/src/main/resources/images/LOGO.png";
 
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -136,7 +143,7 @@ public class TomorrowsBooking {
 
         emailContent.append("<br><br><br>");
 
-        emailContent.append("<img src='cid:logoImage' width='200' height='100'>");
+        emailContent.append("<img src='").append(logo).append("' width='200' height='100'>");
         emailContent.append("<br>");
 
         emailContent.append("<p>In case of any emergency or if you need immediate assistance during your journey, please don't hesitate to call our emergency contact number at: <strong>").append(vehicle.getEmergencyNumber()).append("</strong>.</p>");
@@ -150,7 +157,6 @@ public class TomorrowsBooking {
         helper.setTo(user.getEmail());
         helper.setSubject("Booking Details for Tomorrow");
         helper.setText(emailContent.toString(), true);
-        helper.addInline("logoImage", new File(localLogoPath));
 
         javaMailSender.send(message);
     }

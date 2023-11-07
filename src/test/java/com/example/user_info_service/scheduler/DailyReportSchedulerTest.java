@@ -54,6 +54,8 @@ public class DailyReportSchedulerTest {
         ReflectionTestUtils.setField(scheduler, "mailStartTlsEnable", true);
         ReflectionTestUtils.setField(scheduler, "mailSocketFactoryClass", "socket");
         ReflectionTestUtils.setField(scheduler, "mailDebug", true);
+        ReflectionTestUtils.setField(scheduler, "logo", "https://vehicleimage.s3.ap-south-1.amazonaws.com/LOGO.png");
+
     }
 
     @Test

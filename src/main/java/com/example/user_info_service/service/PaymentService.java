@@ -10,7 +10,5 @@ import org.springframework.http.ResponseEntity;
 public interface PaymentService {
     PaymentResponse createPayment(PaymentDto paymentDto) throws RazorpayException;
 
-    String generateRazorpaySignature(String razorpayPaymentId, String bookingId,String keySecret);
-
     ResponseEntity<BookingResponse> verifyRazorpaySignature(PaymentData paymentData);
 }

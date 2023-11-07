@@ -13,7 +13,8 @@ public enum ResStatus {
     SLOTS_NOT_FOUND("5006","Slots Details not found"),
     INVALID_EMAIL("5007","Invalid Email ID "),
     NO_RECORD_FOUND_WITH_ID_AND_MOBILE("5008","No record found with matching ID and Mobile Number "),
-    BOOKING_DATA_NOT_FOUND_WITH_MOBILE("5009","Booking Details not found for this Mobile Number"),;
+    BOOKING_DATA_NOT_FOUND_WITH_MOBILE("5009","Booking Details not found for this Mobile Number"),
+    PAYMENT_DETAILS_NOT_FOUND("5010","Payment Details not found for this Order ID");
 
     private final String code;
     private final String desc;

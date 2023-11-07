@@ -51,6 +51,8 @@ class TomorrowsBookingTest {
         MockitoAnnotations.openMocks(this);
 
         ReflectionTestUtils.setField(tomorrowsBooking, "toEmailAddress", "sender");
+        ReflectionTestUtils.setField(tomorrowsBooking, "logo", "https://vehicleimage.s3.ap-south-1.amazonaws.com/LOGO.png");
+
     }
 
     @Test

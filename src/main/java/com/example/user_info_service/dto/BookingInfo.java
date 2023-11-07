@@ -18,4 +18,20 @@ public class BookingInfo {
     private String toDate;
 
     private String bookingDate;
+
+    private Double amount;
+
+    private String bookingId;
+
+    private String bookingStatus;
+
+    private Boolean isAc;
+
+    private Boolean isSleeper;
+
+    private Integer seatCapacity;
+
+    private String userName;
+
+    private String mobile;
 }

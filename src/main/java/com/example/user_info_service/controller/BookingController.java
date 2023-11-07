@@ -48,9 +48,9 @@ public class BookingController {
         return new ResponseEntity<>(bookingService.getVehicleAvailability(vehiclesAvailable), HttpStatus.OK);
     }
 
-    @GetMapping("/getBookingInfoByBookingId")
-    public ResponseEntity<BookingInfo> getBookingInfoByBookingId(@RequestParam("bookingId") String bookingId) {
-        return new ResponseEntity<>(bookingService.getBookingInfoByBookingId(bookingId), HttpStatus.OK);
+    @GetMapping("/getBookingInfo")
+    public ResponseEntity<BookingAccess> getBookingInfoByBookingId(@RequestParam("mobile") String mobile) {
+        return new ResponseEntity<>(bookingService.getBookingInfoByBookingId(mobile), HttpStatus.OK);
     }
 
     @PostMapping("/getInTouch")

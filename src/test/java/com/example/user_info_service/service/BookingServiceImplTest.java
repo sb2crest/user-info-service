@@ -1,23 +1,15 @@
 package com.example.user_info_service.service;
 
-import com.example.user_info_service.entity.BookingEntity;
-import com.example.user_info_service.entity.SlotsEntity;
-import com.example.user_info_service.entity.UserEntity;
-import com.example.user_info_service.entity.VehicleEntity;
-import com.example.user_info_service.exception.ResStatus;
+import com.example.user_info_service.entity.*;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.dto.*;
-import com.example.user_info_service.repository.BookingRepo;
-import com.example.user_info_service.repository.SlotsRepo;
-import com.example.user_info_service.repository.UserRepo;
-import com.example.user_info_service.repository.VehicleInfoRepo;
+import com.example.user_info_service.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -39,16 +31,21 @@ class BookingServiceImplTest {
 
     @Mock
     UserRepo userRepo;
+
     @Mock
     SlotsRepo slotsRepo;
+
     @Mock
     BookingRepo bookingRepo;
+
     @Mock
     VehicleInfoRepo vehicleInfoRepo;
+
     @Mock
     private JavaMailSender javaMailSender;
+
     @Mock
-    BookingEntity bookingEntity;
+    PaymentRepository paymentRepository;
 
     @BeforeEach
     public void setUp() {
@@ -187,7 +184,8 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(getPaymentEntity());
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
         assertNotNull(bookingService.getBookingDetails("1234567890"));
     }
 
@@ -196,7 +194,7 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(null);
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
         assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
     }
 
@@ -205,7 +203,7 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(null);
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
         assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
     }
 
@@ -214,7 +212,7 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(null);
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
         assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
     }
 
@@ -223,7 +221,7 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(null);
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
         assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
     }
 
@@ -283,22 +281,42 @@ class BookingServiceImplTest {
 
     @Test
     void getBookingInfoByBookingIdTest(){
-        when(bookingRepo.getByBookingId(Mockito.anyString())).thenReturn(getBookingEntity());
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        BookingInfo bookingInfoByBookingId = bookingService.getBookingInfoByBookingId("123");
-        assertEquals("ka02m1234" , bookingInfoByBookingId.getVehicleNumber());
+        BookingAccess response = bookingService.getBookingInfoByBookingId("123");
+        assertNotNull(response);
+        assertEquals(response.getUpcoming().get(0).getUserName(),"Vijay Thalapathy");
+        assertEquals(response.getUpcoming().get(0).getMobile(),"1234");
+        assertEquals(response.getUpcoming().get(0).getBookingId(),"123");
+    }
+    @Test
+    void getBookingInfoByBookingId_whenStatusIsBooked(){
+        List<BookingEntity> bookingEntity = List.of(getBookingEntity());
+        bookingEntity.get(0).setBookingStatus(BookingStatusEnum.BOOKED.getCode());
+
+        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(getPaymentEntity());
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(bookingEntity);
+        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
+        BookingAccess response = bookingService.getBookingInfoByBookingId("123");
+        assertNotNull(response);
+        assertEquals(response.getUpcoming().get(0).getUserName(),"Vijay Thalapathy");
+        assertEquals(response.getUpcoming().get(0).getMobile(),"1234");
+        assertEquals(response.getUpcoming().get(0).getBookingId(),"123");
     }
 
     @Test
     void testGetInTouch() throws Exception {
-        UserData userData = new UserData();
-        userData.setName("John Doe");
-        userData.setEmail("johndoe@gmail.com");
-        userData.setMessage("Hello, this is a test message.");
-
+        ReflectionTestUtils.setField(bookingService, "logo", "https://vehicleimage.s3.ap-south-1.amazonaws.com/LOGO.png");
+        UserData userData = getUserData();
         when(javaMailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
         doNothing().when(javaMailSender).send(any(MimeMessage.class));
         bookingService.getInTouch(userData);
+    }
+
+    PaymentEntity getPaymentEntity(){
+        PaymentEntity paymentEntity = new PaymentEntity();
+        paymentEntity.setAmount(100.00);
+        return paymentEntity;
     }
 
     VehiclesAvailable getVehiclesAvailable() {
@@ -354,9 +372,56 @@ class BookingServiceImplTest {
         bookingEntity.setToDate(LocalDate.now());
         bookingEntity.setBookingDate(LocalDate.now().minusWeeks(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+        UserEntity user = new UserEntity();
+        user.setLastName("Thalapathy");
+        user.setFirstName("Vijay");
+        user.setMobile("1234");
+        PaymentEntity paymentEntity = getPaymentEntity();
+        bookingEntity.setUserEntity(user);
+        bookingEntity.setPaymentEntities(List.of(paymentEntity));
         return bookingEntity;
     }
 
+    List<BookingEntity> getBookingEntityList() {
+        List<BookingEntity> bookingEntityList = new ArrayList<>();
+        BookingEntity bookingEntity = new BookingEntity();
+        bookingEntity.setBookingId("123");
+        bookingEntity.setMobile("1234");
+        bookingEntity.setId(1L);
+        bookingEntity.setUserEntity(null);
+        bookingEntity.setVehicleNumber("ka02m1234");
+        bookingEntity.setFromDate(LocalDate.now().minusDays(3));
+        bookingEntity.setToDate(LocalDate.now());
+        bookingEntity.setBookingDate(LocalDate.now().minusWeeks(1));
+        bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+
+        BookingEntity bookingEntity1 = new BookingEntity();
+        bookingEntity1.setBookingId("123");
+        bookingEntity1.setMobile("1234");
+        bookingEntity1.setId(1L);
+        bookingEntity1.setUserEntity(null);
+        bookingEntity1.setVehicleNumber("ka02m1234");
+        bookingEntity1.setFromDate(LocalDate.now().minusDays(3));
+        bookingEntity1.setToDate(LocalDate.now());
+        bookingEntity1.setBookingDate(LocalDate.now().minusWeeks(1));
+        bookingEntity1.setBookingStatus(BookingStatusEnum.BOOKED.getCode());
+
+        BookingEntity bookingEntity2 = new BookingEntity();
+        bookingEntity2.setBookingId("123");
+        bookingEntity2.setMobile("1234");
+        bookingEntity2.setId(1L);
+        bookingEntity2.setUserEntity(null);
+        bookingEntity2.setVehicleNumber("ka02m1234");
+        bookingEntity2.setFromDate(LocalDate.now().minusDays(3));
+        bookingEntity2.setToDate(LocalDate.now());
+        bookingEntity2.setBookingDate(LocalDate.now().minusWeeks(1));
+        bookingEntity2.setBookingStatus(BookingStatusEnum.COMPLETED.getCode());
+
+        bookingEntityList.add(bookingEntity);
+        bookingEntityList.add(bookingEntity1);
+        bookingEntityList.add(bookingEntity2);
+        return bookingEntityList;
+    }
     private BookingDto createBookingPojo() {
         BookingDto bookingDto = new BookingDto();
         bookingDto.setFromDate(LocalDate.now());
@@ -378,13 +443,13 @@ class BookingServiceImplTest {
         return bookingDto;
     }
 
-    private BookingResponse getBookingResponse(){
-        BookingResponse  bookingResponse = new BookingResponse();
-        bookingResponse.setBookingId("NBwh36");
-        bookingResponse.setMessage("Booking Successful");
-        bookingResponse.setStatusCode(200);
+    private UserData getUserData(){
+        UserData userData = new UserData();
+        userData.setName("John Doe");
+        userData.setEmail("johndoe@gmail.com");
+        userData.setMessage("Hello, this is a test message.");
 
-        return bookingResponse;
+        return userData;
 
     }
 }

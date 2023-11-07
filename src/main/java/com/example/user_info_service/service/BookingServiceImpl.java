@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
-import java.io.File;
 import java.text.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -47,6 +46,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Value("${mail.to.username}")
     private String toEmailAddress;
+
+    @Value("${nandu.bus.image}")
+    private String logo;
 
     private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private final DateTimeFormatter localDateFormatForBookingDate = DateTimeFormatter.ofPattern("EEEE, MMMM dd yyyy");
@@ -169,25 +171,67 @@ public class BookingServiceImpl implements BookingService {
         bookingDetails.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
         bookingDetails.setBookingDate(bookingEntity.getBookingDate());
         if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
-            PaymentEntity paymentEntity = paymentRepository.findByBookingId(bookingDetails.getBookingId());
-            bookingDetails.setAmountPaid(paymentEntity.getAmount());
+            bookingDetails.setAmountPaid(getAmount(bookingEntity));
         }
     }
 
-    @Override
-    public BookingInfo getBookingInfoByBookingId(String bookingId) {
+    Double getAmount(BookingEntity bookingEntity){
+        if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
+            PaymentEntity paymentEntity = paymentRepository.findByBookingId(bookingEntity.getBookingId());
+            validatePaymentEntity(paymentEntity);
+            return paymentEntity.getAmount();
+        }
+        return null;
+    }
 
-        BookingEntity bookingEntity = bookingRepo.getByBookingId(bookingId);
-        validateBookingEntity(bookingEntity);
-        VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingEntity.getVehicleNumber());
-        validateVehicleEntity(vehicleEntity);
-        return getBookingInfo(vehicleEntity, bookingEntity);
+    @Override
+    public BookingAccess getBookingInfoByBookingId(String mobile) {
+        BookingAccess bookingAccess = new BookingAccess();
+        List<BookingInfo> enquiryAndBookedList = new ArrayList<>();
+        List<BookingInfo> historyList = new ArrayList<>();
+        List<BookingEntity> bookingEntityList = bookingRepo.getByMobileNumber(mobile);
+        validateBookingEntityList(bookingEntityList);
+        for (BookingEntity bookingEntity : bookingEntityList) {
+            VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingEntity.getVehicleNumber());
+            validateVehicleEntity(vehicleEntity);
+            BookingInfo bookingInfo = getBookingInfo(vehicleEntity,bookingEntity);
+            if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.ENQUIRY.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
+                enquiryAndBookedList.add(bookingInfo);
+            }
+            else {
+                historyList.add(bookingInfo);
+            }
+        }
+        bookingAccess.setUpcoming(enquiryAndBookedList);
+        bookingAccess.setHistory(historyList);
+        return bookingAccess;
+    }
+
+    private BookingInfo getBookingInfo(VehicleEntity vehicleEntity, BookingEntity bookingEntity) {
+        BookingInfo bookingInfo = new BookingInfo();
+        bookingInfo.setVehicleNumber(bookingEntity.getVehicleNumber());
+        bookingInfo.setToDate(localDateFormat.format(bookingEntity.getToDate()));
+        bookingInfo.setFromDate(localDateFormat.format(bookingEntity.getFromDate()));
+        bookingInfo.setBookingDate(localDateFormatForBookingDate.format(bookingEntity.getBookingDate()));
+        if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
+            bookingInfo.setDriverName(vehicleEntity.getDriverName());
+            bookingInfo.setDriverNumber(vehicleEntity.getDriverNumber());
+            bookingInfo.setAlternateNumber(vehicleEntity.getAlternateNumber());
+        }
+        bookingInfo.setUserName(bookingEntity.getUserEntity().getFirstName() + " " + bookingEntity.getUserEntity().getLastName());
+        bookingInfo.setMobile(bookingEntity.getUserEntity().getMobile());
+        bookingInfo.setSeatCapacity(vehicleEntity.getSeatCapacity());
+        bookingInfo.setIsAc(vehicleEntity.getIsVehicleAC());
+        bookingInfo.setIsSleeper(vehicleEntity.getIsVehicleSleeper());
+        bookingInfo.setBookingId(bookingEntity.getBookingId());
+        bookingInfo.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
+        bookingInfo.setAmount(getAmount(bookingEntity));
+        return bookingInfo;
     }
 
     @Override
     public void getInTouch(UserData userData) throws Exception {
         userEmailValidation(userData.getEmail());
-        String localLogoPath = System.getProperty("user.dir") + "/src/main/resources/images/LOGO.png";
 
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
@@ -218,27 +262,14 @@ public class BookingServiceImpl implements BookingService {
         messageBody.append("<p>Best Regards<br><strong>NanduBus.in</strong></p>");
         messageBody.append("<br>");
 
-        messageBody.append("<img src='cid:logoImage' width='80' height='75'>");
+        messageBody.append("<img src='").append(logo).append("' width='80' height='75'>");
         messageBody.append("</body></html>");
 
         helper.setTo(toEmailAddress);
         helper.setSubject("Pay attention: User Details to get in touch ");
         helper.setText(messageBody.toString(), true);
-        helper.addInline("logoImage", new File(localLogoPath));
 
         javaMailSender.send(message);
-    }
-
-    private BookingInfo getBookingInfo(VehicleEntity vehicleEntity, BookingEntity bookingEntity) {
-        BookingInfo bookingInfo = new BookingInfo();
-        bookingInfo.setVehicleNumber(bookingEntity.getVehicleNumber());
-        bookingInfo.setToDate(localDateFormat.format(bookingEntity.getToDate()));
-        bookingInfo.setFromDate(localDateFormat.format(bookingEntity.getFromDate()));
-        bookingInfo.setBookingDate(localDateFormatForBookingDate.format(bookingEntity.getBookingDate()));
-        bookingInfo.setDriverName(vehicleEntity.getDriverName());
-        bookingInfo.setDriverNumber(vehicleEntity.getDriverNumber());
-        bookingInfo.setAlternateNumber(vehicleEntity.getAlternateNumber());
-        return bookingInfo;
     }
 
     @Override
@@ -380,6 +411,12 @@ public class BookingServiceImpl implements BookingService {
     private void validateSlotEntity(SlotsEntity slotsEntity) {
         if (slotsEntity == null) {
             throw new BookingException(ResStatus.SLOTS_NOT_FOUND);
+        }
+    }
+
+    private void validatePaymentEntity(PaymentEntity paymentEntity) {
+        if (paymentEntity == null) {
+            throw new BookingException(ResStatus.PAYMENT_DETAILS_NOT_FOUND);
         }
     }
 }

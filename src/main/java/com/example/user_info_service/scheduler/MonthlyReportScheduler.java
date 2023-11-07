@@ -10,7 +10,6 @@ import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.events.Event;
 import com.itextpdf.kernel.events.IEventHandler;
 import com.itextpdf.kernel.events.PdfDocumentEvent;
-import com.itextpdf.kernel.geom.PageSize;
 import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfPage;
@@ -81,8 +80,10 @@ public class MonthlyReportScheduler {
     @Value("${spring.mail.properties.mail.debug}")
     private boolean mailDebug;
 
+    @Value("${nandu.bus.image}")
+    private String logo;
+
     private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private final String watermarkImagePath = "D:\\projects\\Vehicle-project\\user-info-service\\src\\main\\resources\\images\\LOGO.png";
 
     public MonthlyReportScheduler(EmailTransport emailTransport, BookingRepo bookingRepo) {
         this.emailTransport = emailTransport;
@@ -157,7 +158,7 @@ public class MonthlyReportScheduler {
         companyDetailsTable.addCell(new Cell().add(companyParagraph).setTextAlignment(TextAlignment.CENTER).setBorder(Border.NO_BORDER).setMarginTop(20f));
 
         // Add watermark image to the top-right corner with a negative right margin
-        Image watermarkImage = new Image(ImageDataFactory.create(watermarkImagePath));
+        Image watermarkImage = new Image(ImageDataFactory.create(logo));
         watermarkImage.setWidth(UnitValue.createPointValue(100));
 
         companyDetailsTable.addCell(new Cell().add(watermarkImage).setBorder(Border.NO_BORDER).setMarginTop(20f).setTextAlignment(TextAlignment.RIGHT));

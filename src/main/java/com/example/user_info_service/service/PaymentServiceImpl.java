@@ -120,7 +120,7 @@ public class PaymentServiceImpl implements PaymentService {
     public ResponseEntity<BookingResponse> verifyRazorpaySignature(PaymentData paymentData) {
         String generatedSignature = generateRazorpaySignature(paymentData.getRazorPayOrderId(), paymentData.getRazorPayPaymentId(), keySecret);
         PaymentEntity paymentEntity = paymentRepository.findBookingIdByRazorPayOrderId(paymentData.getRazorPayOrderId());
-        log.info("response:::::::::::{}",paymentEntity);
+        validationPaymentEntity(paymentEntity);
 
         BookingResponse bookingResponse = new BookingResponse();
         bookingResponse.setBookingId(paymentEntity.getBookingId());
@@ -142,6 +142,12 @@ public class PaymentServiceImpl implements PaymentService {
             bookingResponse.setMessage("Payment Failed");
             bookingResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
             return new ResponseEntity<>(bookingResponse, HttpStatus.PAYMENT_REQUIRED);
+        }
+    }
+
+    private void validationPaymentEntity(PaymentEntity paymentEntity) {
+        if(paymentEntity == null){
+            throw new BookingException(ResStatus.PAYMENT_DETAILS_NOT_FOUND);
         }
     }
 }
