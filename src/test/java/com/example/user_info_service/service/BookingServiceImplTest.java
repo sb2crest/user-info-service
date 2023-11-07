@@ -291,6 +291,14 @@ class BookingServiceImplTest {
     }
 
     @Test
+    void getBookingInfoByMobileTestWhenPaymentNotFound(){
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
+        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
+        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(null);
+        assertThrows(BookingException.class , ()->bookingService.getBookingInfoByMobile("123"));
+    }
+
+    @Test
     void testGetInTouch() throws Exception {
         ReflectionTestUtils.setField(bookingService, "logo", "https://vehicleimage.s3.ap-south-1.amazonaws.com/LOGO.png");
         UserData userData = getUserData();
