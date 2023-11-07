@@ -175,7 +175,7 @@ class BookingServiceImplTest {
                 fromDateCaptor.capture(),
                 toDateCaptor.capture())
         ).thenReturn(true);
-        assertEquals(null, bookingService.bookingVehicle(createBookingPojo()).getBookingId());
+        assertNull(bookingService.bookingVehicle(createBookingPojo()).getBookingId());
 
     }
 
@@ -280,28 +280,14 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getBookingInfoByBookingIdTest(){
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of(getBookingEntity()));
+    void getBookingInfoByMobileTest(){
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        BookingAccess response = bookingService.getBookingInfoByBookingId("123");
-        assertNotNull(response);
-        assertEquals(response.getUpcoming().get(0).getUserName(),"Vijay Thalapathy");
-        assertEquals(response.getUpcoming().get(0).getMobile(),"1234");
-        assertEquals(response.getUpcoming().get(0).getBookingId(),"123");
-    }
-    @Test
-    void getBookingInfoByBookingId_whenStatusIsBooked(){
-        List<BookingEntity> bookingEntity = List.of(getBookingEntity());
-        bookingEntity.get(0).setBookingStatus(BookingStatusEnum.BOOKED.getCode());
-
         when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(getPaymentEntity());
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(bookingEntity);
-        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        BookingAccess response = bookingService.getBookingInfoByBookingId("123");
+        BookingAccess response = bookingService.getBookingInfoByMobile("123");
         assertNotNull(response);
-        assertEquals(response.getUpcoming().get(0).getUserName(),"Vijay Thalapathy");
-        assertEquals(response.getUpcoming().get(0).getMobile(),"1234");
-        assertEquals(response.getUpcoming().get(0).getBookingId(),"123");
+        assertEquals(response.getUpcoming().get(0).getUserName(),"abc abc");
+        assertEquals(response.getUpcoming().get(0).getMobile(),"1234455667");
     }
 
     @Test
@@ -394,6 +380,7 @@ class BookingServiceImplTest {
         bookingEntity.setToDate(LocalDate.now());
         bookingEntity.setBookingDate(LocalDate.now().minusWeeks(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+        bookingEntity.setUserEntity(getUserEntity());
 
         BookingEntity bookingEntity1 = new BookingEntity();
         bookingEntity1.setBookingId("123");
@@ -405,6 +392,7 @@ class BookingServiceImplTest {
         bookingEntity1.setToDate(LocalDate.now());
         bookingEntity1.setBookingDate(LocalDate.now().minusWeeks(1));
         bookingEntity1.setBookingStatus(BookingStatusEnum.BOOKED.getCode());
+        bookingEntity1.setUserEntity(getUserEntity());
 
         BookingEntity bookingEntity2 = new BookingEntity();
         bookingEntity2.setBookingId("123");
@@ -416,6 +404,7 @@ class BookingServiceImplTest {
         bookingEntity2.setToDate(LocalDate.now());
         bookingEntity2.setBookingDate(LocalDate.now().minusWeeks(1));
         bookingEntity2.setBookingStatus(BookingStatusEnum.COMPLETED.getCode());
+        bookingEntity2.setUserEntity(getUserEntity());
 
         bookingEntityList.add(bookingEntity);
         bookingEntityList.add(bookingEntity1);

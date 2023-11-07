@@ -18,7 +18,7 @@ public interface BookingService {
 
     List<VehicleDto> getVehicleAvailability(VehiclesAvailable vehiclesAvailable);
 
-    BookingAccess getBookingInfoByBookingId(String mobile);
+    BookingAccess getBookingInfoByMobile(String mobile);
 
     void getInTouch(UserData userData) throws Exception;
 }

@@ -49,8 +49,8 @@ public class BookingController {
     }
 
     @GetMapping("/getBookingInfo")
-    public ResponseEntity<BookingAccess> getBookingInfoByBookingId(@RequestParam("mobile") String mobile) {
-        return new ResponseEntity<>(bookingService.getBookingInfoByBookingId(mobile), HttpStatus.OK);
+    public ResponseEntity<BookingAccess> getBookingInfoByMobile(@RequestParam("mobile") String mobile) {
+        return new ResponseEntity<>(bookingService.getBookingInfoByMobile(mobile), HttpStatus.OK);
     }
 
     @PostMapping("/getInTouch")

@@ -185,7 +185,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingAccess getBookingInfoByBookingId(String mobile) {
+    public BookingAccess getBookingInfoByMobile(String mobile) {
         BookingAccess bookingAccess = new BookingAccess();
         List<BookingInfo> enquiryAndBookedList = new ArrayList<>();
         List<BookingInfo> historyList = new ArrayList<>();
