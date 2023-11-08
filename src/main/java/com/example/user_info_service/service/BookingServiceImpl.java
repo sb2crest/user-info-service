@@ -333,7 +333,7 @@ public class BookingServiceImpl implements BookingService {
             VehicleDto vehicleDto = new VehicleDto();
             vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
             vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
-            vehicleDto.setImageUrl(vehicleEntity.getS3ImageUrl());
+            vehicleDto.setS3ImageUrl(vehicleEntity.getS3ImageUrl());
             vehicleDto.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
             vehicleDto.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
 
