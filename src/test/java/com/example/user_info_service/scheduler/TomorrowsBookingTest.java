@@ -123,7 +123,7 @@ class TomorrowsBookingTest {
         vehicleEntity.setVehicleNumber("ka02m1234");
         vehicleEntity.setSeatCapacity(12);
         vehicleEntity.setIsVehicleAC(true);
-        vehicleEntity.setS3ImageUrl("http/image");
+        vehicleEntity.setS3ImageUrl(List.of("http/image"));
         vehicleEntity.setIsVehicleSleeper(true);
         vehicleEntity.setVId(1L);
         return vehicleEntity;

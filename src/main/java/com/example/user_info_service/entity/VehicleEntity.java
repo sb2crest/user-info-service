@@ -7,6 +7,7 @@ import org.hibernate.Hibernate;
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -29,8 +30,9 @@ public class VehicleEntity implements Serializable {
     @Column(name="vehicle_number")
     private String vehicleNumber;
 
+    @ElementCollection
     @Column(name = "file_url")
-    private String s3ImageUrl;
+    private List<String> s3ImageUrl;
 
     @Column(name = "is_ac")
     private Boolean isVehicleAC;

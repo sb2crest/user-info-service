@@ -22,19 +22,19 @@ import java.util.List;
 @EnableSwagger2
 public class VehicleController {
     @Autowired
-    VehicleService vehicleService;
+    private VehicleService vehicleService;
 
 
-//    @PostMapping("/addVehicle")
-//    ResponseEntity<VehicleDto> addVehicle(@ModelAttribute VehicleDto vehicleDto, @RequestParam("files") List<MultipartFile> images ) throws IOException {
-//        try {
-//            checkNumber(vehicleDto);
-//            return new ResponseEntity<>(vehicleService.addVehicle(vehicleDto, images), HttpStatus.OK);
-//        } catch (Exception e) {
-//            log.info("exception");
-//            throw e;
-//        }
-//    }
+    @PostMapping("/addVehicle")
+    ResponseEntity<VehicleDto> addVehicle(@ModelAttribute VehicleDto vehicleDto, @RequestParam("files") List<MultipartFile> images ) throws IOException {
+        try {
+            checkNumber(vehicleDto);
+            return new ResponseEntity<>(vehicleService.addVehicle(vehicleDto, images), HttpStatus.OK);
+        } catch (Exception e) {
+            log.info("exception");
+            throw e;
+        }
+    }
 
     private void checkNumber(VehicleDto vehicleDto) {
         if (vehicleDto.getVehicleNumber() == null) {
@@ -45,16 +45,16 @@ public class VehicleController {
         }
     }
 
-//    @PutMapping("/updateVehicle")
-//    ResponseEntity<VehicleDto> updateVehicle(@RequestParam("files") List<MultipartFile> images, @ModelAttribute VehicleDto vehicleDto) throws IOException {
-//        try {
-//            checkNumber(vehicleDto);
-//            return new ResponseEntity<>(vehicleService.updateVehicle(vehicleDto,images), HttpStatus.OK);
-//        } catch (Exception e) {
-//            log.info("exception");
-//            throw e;
-//        }
-//    }
+    @PutMapping("/updateVehicle")
+    ResponseEntity<VehicleDto> updateVehicle(@RequestParam("files") List<MultipartFile> images, @ModelAttribute VehicleDto vehicleDto) throws IOException {
+        try {
+            checkNumber(vehicleDto);
+            return new ResponseEntity<>(vehicleService.updateVehicle(vehicleDto,images), HttpStatus.OK);
+        } catch (Exception e) {
+            log.info("exception");
+            throw e;
+        }
+    }
 
     @GetMapping("/getVehicle")
     ResponseEntity<VehicleDto> getVehicle(@RequestParam("vehicleNumber") @Valid String vehicleNumber) {

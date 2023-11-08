@@ -4,83 +4,104 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.example.user_info_service.dto.VehicleDto;
 import com.example.user_info_service.entity.VehicleEntity;
+import com.example.user_info_service.exception.ResStatus;
+import com.example.user_info_service.exception.VehicleNumberException;
 import com.example.user_info_service.repository.VehicleInfoRepo;
-import com.example.user_info_service.util.ListUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import static com.example.user_info_service.exception.ResStatus.VEHICLE_NOT_FOUND;
+import static com.example.user_info_service.util.ListUtil.collectionAsStream;
 import static java.util.Objects.isNull;
 
 @Service
+@Slf4j
 public class VehicleServiceImplementation implements VehicleService {
     @Autowired
     VehicleInfoRepo vehicleInfoRepo;
     @Autowired
     AmazonS3 amazonS3;
 
+    @Autowired
     private ModelMapper modelMapper;
+
     @Value("${aws.bucketName}")
     String s3BucketName;
 
 
-//    @Override
-//    public VehicleDto addVehicle(VehicleDto vehicleDto, List<MultipartFile> images) throws IOException {
-//        VehicleEntity getByVehicleNumber = vehicleInfoRepo.getByVehicleNumber(vehicleDto.getVehicleNumber());
-//        VehicleEntity vehicleEntity = modelMapper.map(vehicleDto, VehicleEntity.class);
-//        if (images != null) {
-//            String s3ImageUrl = uploadImagesToS3Bucket(images, vehicleDto);
-//            vehicleEntity.setS3ImageUrl(s3ImageUrl);
-//        }
-//
-//    }
+    @Override
+    public VehicleDto addVehicle(VehicleDto vehicleDto, List<MultipartFile> images) {
+        VehicleEntity vehicleEntity;
+        vehicleEntity = vehicleInfoRepo.getByVehicleNumber(vehicleDto.getVehicleNumber());
+        if (vehicleEntity == null) {
+            vehicleEntity = new VehicleEntity();
+            vehicleEntity.setSeatCapacity(vehicleDto.getSeatCapacity());
+            vehicleEntity.setVehicleNumber(vehicleDto.getVehicleNumber());
+            vehicleEntity.setIsVehicleAC(vehicleDto.getIsVehicleAC());
+            vehicleEntity.setIsVehicleSleeper(vehicleDto.getIsVehicleSleeper());
+            vehicleEntity.setDriverName(vehicleDto.getDriverName());
+            vehicleEntity.setDriverNumber(vehicleDto.getDriverNumber());
+            vehicleEntity.setAlternateNumber(vehicleDto.getAlternateNumber());
+            vehicleEntity.setEmergencyNumber(vehicleDto.getEmergencyNumber());
+            if (images != null) {
+                List<String> s3ImageUrl = uploadImagesToS3Bucket(images, vehicleDto);
+                vehicleEntity.setS3ImageUrl(s3ImageUrl);
+            }
+            vehicleEntity.setS3ImageUrl(vehicleEntity.getS3ImageUrl());
+            VehicleEntity entity = vehicleInfoRepo.save(vehicleEntity);
+            return modelMapper.map(entity, VehicleDto.class);
+        } else {
+            throw new VehicleNumberException(ResStatus.DUPLICATE_NUMBER);
+        }
+
+
+    }
 
     @Override
     public VehicleDto getVehicle(String vehicleNumber) {
         VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(vehicleNumber);
         if (isNull(vehicleEntity)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not available with this " + vehicleNumber);
+            throw new VehicleNumberException(VEHICLE_NOT_FOUND);
         }
         return modelMapper.map(vehicleEntity, VehicleDto.class);
     }
 
-//    @Override
-//    public VehicleDto updateVehicle(VehicleDto vehicleDto, List<MultipartFile> images) throws IOException {
-//        VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(vehicleDto.getVehicleNumber());
-//        if (vehicleEntity == null) {
-//            return addVehicle(vehicleDto, images);
-//        }
-//        // Delete old images from S3
-//        List<String> oldImageUrl = vehicleEntity.getS3ImageUrl();
-//        if (oldImageUrl != null && !images.isEmpty()) {
-//            List<String> oldKeys = extractS3KeyFromUrl(oldImageUrl);
-//            for (String oldKey : oldKeys) {
-//                amazonS3.deleteObject(s3BucketName, oldKey);
-//            }
-//        }
-//        // Upload new images to S3
-//        List<String> s3ImageUrl = uploadImagesToS3Bucket(images, vehiclePojo);
-//        vehicleEntity.setS3ImageUrl(s3ImageUrl);
-//        vehicleEntity.setSeatCapacity(vehiclePojo.getSeatCapacity());
-//        vehicleEntity.setVehicleNumber(vehiclePojo.getVehicleNumber());
-//        vehicleEntity.setIsVehicleAC(vehiclePojo.getIsVehicleAC());
-//        vehicleEntity.setIsVehicleSleeper(vehiclePojo.getIsVehicleSleeper());
-//        vehicleEntity.setDriverName(vehiclePojo.getDriverName());
-//        vehicleEntity.setDriverNumber(vehiclePojo.getDriverNumber());
-//        vehicleEntity.setAlternateNumber(vehiclePojo.getAlternateNumber());
-//        vehicleEntity.setEmergencyNumber(vehiclePojo.getEmergencyNumber());
-//        return vehicleInfoRepo.save(vehicleEntity);
-//    }
+    @Override
+    public VehicleDto updateVehicle(VehicleDto vehicleDto, List<MultipartFile> images)  {
+        VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(vehicleDto.getVehicleNumber());
+        if (vehicleEntity == null) {
+            return addVehicle(vehicleDto, images);
+        }
+        List<String> oldImageUrl = vehicleEntity.getS3ImageUrl();
+        if (oldImageUrl != null && !images.isEmpty()) {
+            List<String> oldKeys = extractS3KeyFromUrl(oldImageUrl);
+            for (String oldKey : oldKeys) {
+                amazonS3.deleteObject(s3BucketName, oldKey);
+            }
+        }
+        List<String> s3ImageUrl = uploadImagesToS3Bucket(images, vehicleDto);
+        vehicleEntity.setS3ImageUrl(s3ImageUrl);
+        vehicleEntity.setSeatCapacity(vehicleDto.getSeatCapacity());
+        vehicleEntity.setVehicleNumber(vehicleDto.getVehicleNumber());
+        vehicleEntity.setIsVehicleAC(vehicleDto.getIsVehicleAC());
+        vehicleEntity.setIsVehicleSleeper(vehicleDto.getIsVehicleSleeper());
+        vehicleEntity.setDriverName(vehicleDto.getDriverName());
+        vehicleEntity.setDriverNumber(vehicleDto.getDriverNumber());
+        vehicleEntity.setAlternateNumber(vehicleDto.getAlternateNumber());
+        vehicleEntity.setEmergencyNumber(vehicleDto.getEmergencyNumber());
+        VehicleEntity saveResponse = vehicleInfoRepo.save(vehicleEntity);
+        return modelMapper.map(saveResponse,VehicleDto.class);
+
+    }
 
     List<String> extractS3KeyFromUrl(List<String> s3ImageUrls) {
         List<String> updatedS3Keys = new ArrayList<>();
@@ -105,7 +126,7 @@ public class VehicleServiceImplementation implements VehicleService {
                 String fileUrl = amazonS3.getUrl(s3BucketName, fileName).toString();
                 uploadedImageUrls.add(fileUrl);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.error("error while uploading " + e.getMessage());
             }
         }
         return uploadedImageUrls;
@@ -145,7 +166,7 @@ public class VehicleServiceImplementation implements VehicleService {
     public List<VehicleDto> listAllVehicles() {
         List<VehicleDto> vehicleDtoList = new ArrayList<>();
         List<VehicleEntity> vehicleEntityList = vehicleInfoRepo.findAll();
-        ListUtil.collectionAsStream(vehicleEntityList)
+        collectionAsStream(vehicleEntityList)
                 .forEach(entity -> vehicleDtoList.add(modelMapper.map(entity, VehicleDto.class)));
         return vehicleDtoList;
     }
