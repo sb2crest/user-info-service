@@ -130,8 +130,8 @@ public class BookingServiceImpl implements BookingService {
 
     private String generateId() {
         UUID uuid = UUID.randomUUID();
-        String uuidStr = uuid.toString().replaceAll("-", "").substring(0, 9);
-        return "NB" + uuidStr;
+        String uuId = uuid.toString().replaceAll("-", "").substring(0, 9);
+        return "NB" + uuId;
     }
 
     @Override
