@@ -99,7 +99,7 @@ public class BookingServiceImpl implements BookingService {
         bookingEntity.setVehicleNumber(bookingDto.getVehicleNumber());
         bookingEntity.setFromDate(bookingDto.getFromDate());
         bookingEntity.setToDate(bookingDto.getToDate());
-        bookingEntity.setBookingId(generateBookingId());
+        bookingEntity.setBookingId(generateId());
         bookingEntity.setMobile(bookingDto.getUser().getMobile());
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
         bookingEntity.setBookingDate(LocalDate.now());
@@ -130,12 +130,8 @@ public class BookingServiceImpl implements BookingService {
 
     private String generateId() {
         UUID uuid = UUID.randomUUID();
-        return "NB" + uuid;
-    }
-
-    private String generateBookingId() {
-        String str = generateId();
-        return str.substring(0, 6);
+        String uuId = uuid.toString().replaceAll("-", "").substring(0, 9);
+        return "NB" + uuId;
     }
 
     @Override
@@ -333,7 +329,7 @@ public class BookingServiceImpl implements BookingService {
             VehicleDto vehicleDto = new VehicleDto();
             vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
             vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
-            vehicleDto.setImageUrl(vehicleEntity.getS3ImageUrl());
+            vehicleDto.setS3ImageUrl(vehicleEntity.getS3ImageUrl());
             vehicleDto.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
             vehicleDto.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
 
