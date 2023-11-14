@@ -1,13 +1,16 @@
 package com.example.user_info_service.service;
 
+import com.example.user_info_service.dto.OTPResponse;
 import com.example.user_info_service.entity.OTPEntity;
 import com.example.user_info_service.dto.ValidateOTP;
+import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.repository.OTPRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -21,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 @ExtendWith(SpringExtension.class)
@@ -65,10 +69,10 @@ class OTPEntityServiceImplementationTest {
         when(mockConnection.getInputStream()).thenReturn(inputStream);
         doReturn(mockConnection).when(spyService).createConnection(any());
 
-        String result = spyService.generateOTP(mobileNumber);
+        ResponseEntity<OTPResponse> result = spyService.generateOTP(mobileNumber);
 
         verify(otpRepository, times(1)).save(any(OTPEntity.class));
-        assertEquals("OTP sent successfully.", result);
+        assertEquals("OTP sent successfully.", Objects.requireNonNull(result.getBody()).getMessage());
     }
     @Test
      void testGenerateOTP_FailedSend() throws IOException {
@@ -79,16 +83,32 @@ class OTPEntityServiceImplementationTest {
         HttpURLConnection mockConnection = mock(HttpURLConnection.class);
         when(mockConnection.getResponseCode()).thenReturn(401);
 
-        String result = otpServiceImplementation.generateOTP(mobileNumber);
+        ResponseEntity<OTPResponse> result = otpServiceImplementation.generateOTP(mobileNumber);
 
         verifyNoInteractions(otpRepository);
-        assertEquals("Failed to send OTP.", result);
+        assertEquals("Failed to send OTP.", Objects.requireNonNull(result.getBody()).getMessage());
     }
     @Test
-     void testGenerateOTP_whenException_throwException() throws IOException {
-           HttpURLConnection mockConnection = mock(HttpURLConnection.class);
-           when(mockConnection.getResponseCode()).thenReturn(401);
-           assertEquals("Exception while sending OTP.. ",otpServiceImplementation.generateOTP(null));
+     void testGenerateOTP_whenMobileIsEmpty_throwException(){
+           assertThrows(BookingException.class , ()-> otpServiceImplementation.generateOTP(""));
+    }
+
+    @Test
+    void testGenerateOTP_whenMobileIsInvalid_throwException() {
+        assertThrows(BookingException.class , ()-> otpServiceImplementation.generateOTP("1234"));
+    }
+
+    @Test
+    void testGenerateOTP_whenMobileIsNull_throwException() {
+        assertThrows(BookingException.class , ()-> otpServiceImplementation.generateOTP(null));
+    }
+    @Test
+    void testGenerateOTP_whenMobileIsInvalid_throwException1() throws IOException {
+        HttpURLConnection mockConnection = mock(HttpURLConnection.class);
+        when(mockConnection.getResponseCode()).thenReturn(401);
+        ResponseEntity<OTPResponse> response = otpServiceImplementation.generateOTP("1234567890");
+        assertEquals("Exception while sending OTP.. ", Objects.requireNonNull(response.getBody()).getMessage());
+
     }
 
     List<OTPEntity> getOTPs(){
