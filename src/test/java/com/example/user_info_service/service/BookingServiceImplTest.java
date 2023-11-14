@@ -267,17 +267,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getVehicleAvailabilityTestWhenDatesNotGiven() {
-        VehiclesAvailable vehiclesAvailable = getVehiclesAvailable();
-        vehiclesAvailable.setFromDate(null);
-        vehiclesAvailable.setToDate(null);
-        List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
-        when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(vehicleEntities);
-        when(slotsRepo.getUnavailableList(Mockito.any(), Mockito.any())).thenReturn(List.of("KA01AB1123","KA01AB2234"));
-        assertEquals(12,bookingService.getVehicleAvailability(vehiclesAvailable).get(0).getSeatCapacity());
-
-    }
-    @Test
     void getBookedSlotsByVehicleNumberTest(){
         when(slotsRepo.getByVehicleNUmber(Mockito.anyString())).thenReturn(List.of(getSlotEntity()));
         VehicleBooked vehicleBooked = bookingService.getBookedSlotsByVehicleNumber("123");

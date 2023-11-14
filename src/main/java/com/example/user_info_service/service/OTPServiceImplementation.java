@@ -1,16 +1,11 @@
 package com.example.user_info_service.service;
 
-import com.example.user_info_service.dto.OTPResponse;
 import com.example.user_info_service.entity.OTPEntity;
 import com.example.user_info_service.dto.ValidateOTP;
-import com.example.user_info_service.exception.BookingException;
-import com.example.user_info_service.exception.ResStatus;
 import com.example.user_info_service.repository.OTPRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -50,9 +45,7 @@ public class OTPServiceImplementation implements OTPService {
     }
 
     @Override
-    public ResponseEntity<OTPResponse> generateOTP(String mobile) {
-        userMobileValidation(mobile);
-        OTPResponse otpResponse = new OTPResponse();
+    public String generateOTP(String mobile) {
         String otp = generateRandomOTP();
         String apiUrl = smsUrl + apiKey +
                 "&variables_values=" + otp +
@@ -61,28 +54,13 @@ public class OTPServiceImplementation implements OTPService {
             boolean success = sendOtp(apiUrl);
             if (success) {
                 saveOTPToDB(mobile, otp);
-                otpResponse.setMessage("OTP sent successfully.");
-                otpResponse.setStatusCode(HttpStatus.OK.value());
-                return new ResponseEntity<>(otpResponse, HttpStatus.OK);
+                return "OTP sent successfully.";
             } else {
-                otpResponse.setMessage("Failed to send OTP.");
-                otpResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
-                return new ResponseEntity<>(otpResponse, HttpStatus.BAD_REQUEST);
+                return "Failed to send OTP.";
             }
         } catch (Exception e) {
             log.info("exception :" + e.getMessage());
-            otpResponse.setMessage("Exception while sending OTP.. ");
-            otpResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
-            return new ResponseEntity<>(otpResponse, HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    private void userMobileValidation(String mobile) {
-        if (mobile == null || mobile.isEmpty()) {
-            throw new BookingException(ResStatus.ENTER_NUMBER);
-        }
-        if (mobile.length() != 10) {
-            throw new BookingException(ResStatus.MOBILE_DIGIT);
+            return "Exception while sending OTP.. ";
         }
     }
 

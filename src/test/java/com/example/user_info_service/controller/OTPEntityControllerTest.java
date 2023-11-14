@@ -1,6 +1,5 @@
 package com.example.user_info_service.controller;
 
-import com.example.user_info_service.dto.OTPResponse;
 import com.example.user_info_service.model.TestUtil;
 import com.example.user_info_service.dto.ValidateOTP;
 import com.example.user_info_service.service.OTPService;
@@ -11,9 +10,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -57,15 +54,31 @@ class OTPEntityControllerTest {
     }
 
     @Test
-     void testGetOTP() throws Exception {
+     void testGetOTP_SUCCESS() throws Exception {
         String mobileNumber = "1234567890";
+        String expectedResult = "OTP sent successfully.";
 
-        Mockito.when(otpService.generateOTP(mobileNumber)).thenReturn(new ResponseEntity<>(new OTPResponse(), HttpStatus.OK));
+        Mockito.when(otpService.generateOTP(mobileNumber)).thenReturn(expectedResult);
 
         mvc.perform(post("/sendOTP")
                         .param("mobile", mobileNumber)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedResult));
+    }
+
+    @Test
+     void testGetOTP_FAILURE() throws Exception {
+        String mobileNumber = "12345670";
+        String expectedResult = "Failed to send OTP.";
+
+        Mockito.when(otpService.generateOTP(mobileNumber)).thenReturn(expectedResult);
+
+        mvc.perform(post("/sendOTP")
+                        .param("mobile", mobileNumber)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(expectedResult));
     }
 
     ValidateOTP getValidateOTP() {

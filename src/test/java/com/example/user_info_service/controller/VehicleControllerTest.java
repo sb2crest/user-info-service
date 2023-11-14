@@ -24,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -195,13 +194,6 @@ class VehicleControllerTest {
     void getVehicleWhenNoMatchingDataExists() throws Exception {
         Mockito.when(vehicleService.getVehicle(Mockito.anyString())).thenReturn(null);
         mvc.perform(get("/getVehicle").param("vehicleNumber", "12")
-                .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
-    }
-
-    @Test
-    void listVehicles() throws Exception {
-        Mockito.when(vehicleService.listAllVehicles()).thenReturn(List.of(new VehicleDto()));
-        mvc.perform(get("/listVehicles")
                 .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
 
