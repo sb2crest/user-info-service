@@ -317,7 +317,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<VehicleDto> getVehicleAvailability(VehiclesAvailable vehiclesAvailable) {
         List<VehicleDto> vehicleDtos = new ArrayList<>();
-        List<String> unavailableVehicleList = slotsRepo.getUnavailableList(vehiclesAvailable.getFromDate(), vehiclesAvailable.getToDate());
+        LocalDate fromDate = vehiclesAvailable.getFromDate() == null ? LocalDate.now() : vehiclesAvailable.getFromDate();
+        LocalDate toDate = vehiclesAvailable.getToDate() == null ? fromDate.plusDays(1).plusWeeks(2) : vehiclesAvailable.getToDate();
+        List<String> unavailableVehicleList = slotsRepo.getUnavailableList(fromDate , toDate);
         List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(unavailableVehicleList, vehiclesAvailable.getIsAC(), vehiclesAvailable.getIsSleeper());
         getVehiclePojo(vehicleDtos, vehicleEntities);
         return vehicleDtos;

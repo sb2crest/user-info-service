@@ -1,9 +1,11 @@
 package com.example.user_info_service.controller;
 
+import com.example.user_info_service.dto.OTPResponse;
 import com.example.user_info_service.dto.ValidateOTP;
 import com.example.user_info_service.service.OTPService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -19,7 +21,7 @@ public class OTPController {
     }
 
     @PostMapping("/sendOTP")
-    String generateOTP(@RequestParam String mobile){
+    ResponseEntity<OTPResponse> generateOTP(@RequestParam String mobile){
         return otpService.generateOTP(mobile);
     }
     @PostMapping("/validateOTP")
@@ -27,5 +29,3 @@ public class OTPController {
         return otpService.validateSMS(validateOTP);
     }
 }
-
-
