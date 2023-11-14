@@ -41,16 +41,21 @@ public class OTPServiceImplementation implements OTPService {
     }
 
     @Override
-    public String validateSMS(ValidateOTP validateOTP) {
+    public ResponseEntity<OTPResponse> validateSMS(ValidateOTP validateOTP) {
+        OTPResponse otpResponse = new OTPResponse();
         List<OTPEntity> responseOTPEntity = otpRepository.findByPhoneNumber(validateOTP.getMobile(),LocalDateTime.now().minusMinutes(5));
         if (!responseOTPEntity.isEmpty() && responseOTPEntity.stream().anyMatch(o -> o.getOtpPassword().equals(validateOTP.getOtp()))) {
-            return "Successfully validated";
+            otpResponse.setMessage("Successfully validated");
+            otpResponse.setStatusCode(HttpStatus.OK.value());
+            return new ResponseEntity<>(otpResponse, HttpStatus.OK);
         }
-        return "Validation Unsuccessful";
+        otpResponse.setMessage("Validation Unsuccessful");
+        otpResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        return new ResponseEntity<>(otpResponse,HttpStatus.BAD_REQUEST);
     }
 
     @Override
-    public ResponseEntity<OTPResponse> generateOTP(String mobile) {
+    public ResponseEntity<OTPResponse>  generateOTP(String mobile) {
         userMobileValidation(mobile);
         OTPResponse otpResponse = new OTPResponse();
         String otp = generateRandomOTP();

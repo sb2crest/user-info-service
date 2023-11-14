@@ -25,7 +25,7 @@ public class OTPController {
         return otpService.generateOTP(mobile);
     }
     @PostMapping("/validateOTP")
-    String validateSMS(@RequestBody ValidateOTP validateOTP) {
+    ResponseEntity<OTPResponse> validateSMS(@RequestBody ValidateOTP validateOTP) {
         return otpService.validateSMS(validateOTP);
     }
 }

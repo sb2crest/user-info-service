@@ -37,13 +37,13 @@ class OTPEntityServiceImplementationTest {
     @Test
     void validateSMS() {
         Mockito.when(otpRepository.findByPhoneNumber(Mockito.anyString(),Mockito.any())).thenReturn(getOTPs());
-        assertEquals("Successfully validated", otpServiceImplementation.validateSMS(getValidateOTP()));
+        assertEquals("Successfully validated", otpServiceImplementation.validateSMS(getValidateOTP()).getBody().getMessage());
     }
 
     @Test
     void validateSMSForUnSuccessfulValidation() {
         Mockito.when(otpRepository.findByPhoneNumber(Mockito.anyString(),Mockito.any())).thenReturn(List.of());
-        assertEquals("Validation Unsuccessful", otpServiceImplementation.validateSMS(getValidateOTP()));
+        assertEquals("Validation Unsuccessful", otpServiceImplementation.validateSMS(getValidateOTP()).getBody().getMessage());
     }
 
     @Test
@@ -51,7 +51,7 @@ class OTPEntityServiceImplementationTest {
         List<OTPEntity> list=getOTPs();
         list.get(0).setOtpPassword("16544");
         Mockito.when(otpRepository.findByPhoneNumber(Mockito.anyString(),Mockito.any())).thenReturn(list);
-        assertEquals("Validation Unsuccessful", otpServiceImplementation.validateSMS(getValidateOTP()));
+        assertEquals("Validation Unsuccessful", otpServiceImplementation.validateSMS(getValidateOTP()).getBody().getMessage());
     }
 
     @Test

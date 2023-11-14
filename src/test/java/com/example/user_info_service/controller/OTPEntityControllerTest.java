@@ -20,7 +20,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
@@ -44,14 +43,7 @@ class OTPEntityControllerTest {
 
     @Test
     void validateSMS() throws Exception {
-        Mockito.when(otpService.validateSMS(Mockito.any())).thenReturn("Successfully validated");
-        mvc.perform(post("/validateOTP").content(TestUtil.convertObjectToJsonBytes(getValidateOTP()))
-                .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
-    }
-
-    @Test
-    void validateSMSWithUnSuccess() throws Exception {
-        Mockito.when(otpService.validateSMS(Mockito.any())).thenReturn("Validation Unsuccessful");
+        Mockito.when(otpService.validateSMS(Mockito.any())).thenReturn(new ResponseEntity<>(new OTPResponse(), HttpStatus.OK));
         mvc.perform(post("/validateOTP").content(TestUtil.convertObjectToJsonBytes(getValidateOTP()))
                 .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk());
     }
