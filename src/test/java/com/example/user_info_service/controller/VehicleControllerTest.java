@@ -203,4 +203,5 @@ class VehicleControllerTest {
         vehiclePojo.setVehicleNumber("KA12ab1234");
         return vehiclePojo;
     }
+
 }
