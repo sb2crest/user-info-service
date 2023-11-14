@@ -2,9 +2,13 @@ package com.example.user_info_service.entity;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.Hibernate;
+
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "vehicle_info")
@@ -26,8 +30,9 @@ public class VehicleEntity implements Serializable {
     @Column(name="vehicle_number")
     private String vehicleNumber;
 
+    @ElementCollection
     @Column(name = "file_url")
-    private String s3ImageUrl;
+    private List<String> s3ImageUrl;
 
     @Column(name = "is_ac")
     private Boolean isVehicleAC;
@@ -46,4 +51,16 @@ public class VehicleEntity implements Serializable {
 
     @Column(name = "emergency_contact_number")
     private String emergencyNumber;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        VehicleEntity that = (VehicleEntity) o;
+        return vId != null && Objects.equals(vId, that.vId);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }

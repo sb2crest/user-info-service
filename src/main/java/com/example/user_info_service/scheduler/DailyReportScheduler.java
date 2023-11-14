@@ -79,8 +79,10 @@ public class DailyReportScheduler {
     @Value("${spring.mail.properties.mail.debug}")
     private boolean mailDebug;
 
+    @Value("${nandu.bus.image}")
+    private String logo;
+
     private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    private final String watermarkImagePath = "D:\\projects\\Vehicle-project\\user-info-service\\src\\main\\resources\\images\\LOGO.png";
 
     public DailyReportScheduler(EmailTransport emailTransport, BookingRepo bookingRepo) {
         this.emailTransport = emailTransport;
@@ -149,7 +151,7 @@ public class DailyReportScheduler {
         companyDetailsTable.addCell(new Cell().add(companyParagraph).setTextAlignment(TextAlignment.CENTER).setBorder(Border.NO_BORDER).setMarginTop(20f));
 
         // Add watermark image to the top-right corner with a negative right margin
-        Image watermarkImage = new Image(ImageDataFactory.create(watermarkImagePath));
+        Image watermarkImage = new Image(ImageDataFactory.create(logo));
         watermarkImage.setWidth(UnitValue.createPointValue(100));
 
         companyDetailsTable.addCell(new Cell().add(watermarkImage).setBorder(Border.NO_BORDER).setMarginTop(20f).setTextAlignment(TextAlignment.RIGHT));

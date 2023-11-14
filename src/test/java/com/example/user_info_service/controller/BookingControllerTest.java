@@ -103,11 +103,11 @@ class BookingControllerTest {
     }
 
     @Test
-    void getBookingInfoByBookingIdTest() throws Exception {
-        when(bookingService.getBookingInfoByBookingId("456")).thenReturn(new BookingInfo());
+    void getBookingInfoByMobileTest() throws Exception {
+        when(bookingService.getBookingInfoByMobile("456")).thenReturn(new BookingAccess());
 
-        mvc.perform(get("/getBookingInfoByBookingId")
-                        .param("bookingId", "456")
+        mvc.perform(get("/getBookingInfo")
+                        .param("mobile", "456")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 

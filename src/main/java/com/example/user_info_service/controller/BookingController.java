@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-@CrossOrigin(origins = "http://localhost:8100")
+@CrossOrigin(origins = {"http://localhost:8100","http://nandubus.in"})
 public class BookingController {
     @Autowired
     BookingService bookingService;
@@ -48,9 +48,9 @@ public class BookingController {
         return new ResponseEntity<>(bookingService.getVehicleAvailability(vehiclesAvailable), HttpStatus.OK);
     }
 
-    @GetMapping("/getBookingInfoByBookingId")
-    public ResponseEntity<BookingInfo> getBookingInfoByBookingId(@RequestParam("bookingId") String bookingId) {
-        return new ResponseEntity<>(bookingService.getBookingInfoByBookingId(bookingId), HttpStatus.OK);
+    @GetMapping("/getBookingInfo")
+    public ResponseEntity<BookingAccess> getBookingInfoByMobile(@RequestParam("mobile") String mobile) {
+        return new ResponseEntity<>(bookingService.getBookingInfoByMobile(mobile), HttpStatus.OK);
     }
 
     @PostMapping("/getInTouch")

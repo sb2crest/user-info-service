@@ -4,10 +4,12 @@ import com.example.user_info_service.scheduler.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 
 
 @Controller
+@CrossOrigin(origins = {"http://localhost:8100","http://nandubus.in"})
 public class SchedulerController {
 
     @Autowired
