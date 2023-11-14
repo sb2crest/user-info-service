@@ -20,6 +20,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @EnableSwagger2
+@CrossOrigin(origins = {"http://localhost:8100","http://nandubus.in"})
 public class VehicleController {
     @Autowired
     private VehicleService vehicleService;
