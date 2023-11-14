@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Slf4j
-@CrossOrigin(origins = "http://localhost:8100")
+@CrossOrigin(origins = {"http://localhost:8100","http://nandubus.in"})
 public class OTPController {
     private final OTPService otpService;
 

@@ -1,11 +1,13 @@
 package com.example.user_info_service.controller;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 
 @RestController
+@CrossOrigin(origins = {"http://localhost:8100","http://nandubus.in"})
 public class WhatsAppController {
 
     public static final String ACCOUNT_SID = "AC9b56e912837e7b190d98343ae02a2ec9";
