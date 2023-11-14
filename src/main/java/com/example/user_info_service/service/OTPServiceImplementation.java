@@ -52,6 +52,7 @@ public class OTPServiceImplementation implements OTPService {
     @Override
     public ResponseEntity<OTPResponse> generateOTP(String mobile) {
         userMobileValidation(mobile);
+
         OTPResponse otpResponse = new OTPResponse();
         String otp = generateRandomOTP();
         String apiUrl = smsUrl + apiKey +
