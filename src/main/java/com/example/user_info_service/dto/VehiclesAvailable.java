@@ -7,9 +7,9 @@ import java.time.LocalDate;
 @Data
 public class VehiclesAvailable {
 
-    private LocalDate fromDate;
+    private String fromDate;
 
-    private LocalDate toDate;
+    private String toDate;
 
     private String filter;
 

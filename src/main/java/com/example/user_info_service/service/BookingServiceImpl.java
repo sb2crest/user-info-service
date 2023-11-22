@@ -320,8 +320,8 @@ public class BookingServiceImpl implements BookingService {
     public List<VehicleDto> getVehicleAvailability(VehiclesAvailable vehiclesAvailable) {
         List<VehicleDto> vehicleDtos = new ArrayList<>();
         List<String> filterDetails = CommonFunction.getFilterDetails(vehiclesAvailable.getFilter());
-        LocalDate fromDate = vehiclesAvailable.getFromDate() == null ? LocalDate.now() : vehiclesAvailable.getFromDate();
-        LocalDate toDate = vehiclesAvailable.getToDate() == null ? fromDate.plusDays(1).plusWeeks(2) : vehiclesAvailable.getToDate();
+        LocalDate fromDate = vehiclesAvailable.getFromDate() == null ? LocalDate.now() : LocalDate.parse(vehiclesAvailable.getFromDate(), localDateFormat);
+        LocalDate toDate = vehiclesAvailable.getToDate() == null ? fromDate.plusDays(1).plusWeeks(2) : LocalDate.parse(vehiclesAvailable.getToDate(), localDateFormat);
         List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(filterDetails,toDate, fromDate);
         getVehiclePojo(vehicleDtos, vehicleEntities);
         return vehicleDtos;

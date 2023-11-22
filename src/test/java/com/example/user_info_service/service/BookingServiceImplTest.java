@@ -326,8 +326,8 @@ class BookingServiceImplTest {
 
     VehiclesAvailable getVehiclesAvailable() {
         VehiclesAvailable vehiclesAvailable = new VehiclesAvailable();
-        vehiclesAvailable.setFromDate(LocalDate.now().minusDays(2));
-        vehiclesAvailable.setToDate(LocalDate.now());
+        vehiclesAvailable.setFromDate("12-11-2023");
+        vehiclesAvailable.setToDate("15-11-2023");
         vehiclesAvailable.setFilter("AC/FS");
         return vehiclesAvailable;
     }
