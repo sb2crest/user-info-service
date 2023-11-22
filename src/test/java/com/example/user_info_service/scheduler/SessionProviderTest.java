@@ -1,14 +1,20 @@
 package com.example.user_info_service.scheduler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
 public class SessionProviderTest {
+
+    @InjectMocks
+    SessionProvider sessionProvider;
 
     @Test
     public void testCreateSession() {

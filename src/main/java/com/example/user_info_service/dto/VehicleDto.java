@@ -18,9 +18,9 @@ public class VehicleDto {
 
     private List<String> s3ImageUrl;
 
-    private Boolean isVehicleAC;
+    private String vehicleAC;
 
-    private Boolean isVehicleSleeper;
+    private String sleeper;
 
     private MultipartFile image;
 

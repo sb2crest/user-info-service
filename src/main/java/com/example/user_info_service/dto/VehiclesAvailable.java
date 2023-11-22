@@ -11,8 +11,6 @@ public class VehiclesAvailable {
 
     private LocalDate toDate;
 
-    private Boolean isAC;
-
-    private Boolean isSleeper;
+    private String filter;
 
 }

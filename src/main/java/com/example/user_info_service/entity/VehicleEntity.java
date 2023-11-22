@@ -34,11 +34,8 @@ public class VehicleEntity implements Serializable {
     @Column(name = "file_url")
     private List<String> s3ImageUrl;
 
-    @Column(name = "is_ac")
-    private Boolean isVehicleAC;
-
-    @Column(name = "is_sleeper")
-    private Boolean isVehicleSleeper;
+    @Column(name = "filter")
+    private String filter;
 
     @Column(name = "driver_name")
     private String driverName;

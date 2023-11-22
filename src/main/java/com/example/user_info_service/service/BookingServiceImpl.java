@@ -1,12 +1,15 @@
 package com.example.user_info_service.service;
 
 import com.example.user_info_service.entity.*;
+import com.example.user_info_service.exception.ACType;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
+import com.example.user_info_service.exception.SleeperType;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.model.GmailValidator;
 import com.example.user_info_service.dto.*;
 import com.example.user_info_service.repository.*;
+import com.example.user_info_service.util.CommonFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -217,8 +220,7 @@ public class BookingServiceImpl implements BookingService {
         bookingInfo.setUserName(bookingEntity.getUserEntity().getFirstName() + " " + bookingEntity.getUserEntity().getLastName());
         bookingInfo.setMobile(bookingEntity.getUserEntity().getMobile());
         bookingInfo.setSeatCapacity(vehicleEntity.getSeatCapacity());
-        bookingInfo.setIsAc(vehicleEntity.getIsVehicleAC());
-        bookingInfo.setIsSleeper(vehicleEntity.getIsVehicleSleeper());
+        getFilterDetailsForBooking(bookingInfo, vehicleEntity);
         bookingInfo.setBookingId(bookingEntity.getBookingId());
         bookingInfo.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
         bookingInfo.setAmount(getAmount(bookingEntity));
@@ -317,10 +319,10 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<VehicleDto> getVehicleAvailability(VehiclesAvailable vehiclesAvailable) {
         List<VehicleDto> vehicleDtos = new ArrayList<>();
+        List<String> filterDetails = CommonFunction.getFilterDetails(vehiclesAvailable.getFilter());
         LocalDate fromDate = vehiclesAvailable.getFromDate() == null ? LocalDate.now() : vehiclesAvailable.getFromDate();
         LocalDate toDate = vehiclesAvailable.getToDate() == null ? fromDate.plusDays(1).plusWeeks(2) : vehiclesAvailable.getToDate();
-        List<String> unavailableVehicleList = slotsRepo.getUnavailableList(fromDate , toDate);
-        List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(unavailableVehicleList, vehiclesAvailable.getIsAC(), vehiclesAvailable.getIsSleeper());
+        List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(filterDetails,toDate, fromDate);
         getVehiclePojo(vehicleDtos, vehicleEntities);
         return vehicleDtos;
 
@@ -332,8 +334,7 @@ public class BookingServiceImpl implements BookingService {
             vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
             vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
             vehicleDto.setS3ImageUrl(vehicleEntity.getS3ImageUrl());
-            vehicleDto.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
-            vehicleDto.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
+            getVehicleFilterDetails(vehicleDto, vehicleEntity);
 
             vehicleDtos.add(vehicleDto);
         }
@@ -357,8 +358,7 @@ public class BookingServiceImpl implements BookingService {
         VehicleDto vehicleDto = new VehicleDto();
         vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
         vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
-        vehicleDto.setIsVehicleSleeper(vehicleEntity.getIsVehicleSleeper());
-        vehicleDto.setIsVehicleAC(vehicleEntity.getIsVehicleAC());
+        getVehicleFilterDetails(vehicleDto, vehicleEntity);
         bookingDetails.setVehicle(vehicleDto);
     }
 
@@ -416,5 +416,19 @@ public class BookingServiceImpl implements BookingService {
         if (paymentEntity == null) {
             throw new BookingException(ResStatus.PAYMENT_DETAILS_NOT_FOUND);
         }
+    }
+
+    private void getVehicleFilterDetails(VehicleDto vehicleDto, VehicleEntity vehicleEntity) {
+        if(vehicleEntity.getFilter() != null) {
+            String[] filterDetails = CommonFunction.splitUsingSlash(vehicleEntity.getFilter());
+            vehicleDto.setVehicleAC(ACType.getDescByCode(filterDetails[0]));
+            vehicleDto.setSleeper(SleeperType.getDescByCode(filterDetails[1]));
+        }
+    }
+
+    private void getFilterDetailsForBooking(BookingInfo bookingInfo, VehicleEntity vehicleEntity) {
+        String[] filterDetails = CommonFunction.splitUsingSlash(vehicleEntity.getFilter());
+        bookingInfo.setVehicleAC(ACType.getDescByCode(filterDetails[0]));
+        bookingInfo.setSleeper(SleeperType.getDescByCode(filterDetails[1]));
     }
 }

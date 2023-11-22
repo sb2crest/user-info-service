@@ -260,8 +260,7 @@ class BookingServiceImplTest {
     @Test
     void getVehicleAvailabilityTest() {
         List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
-        when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(vehicleEntities);
-        when(slotsRepo.getUnavailableList(Mockito.any(), Mockito.any())).thenReturn(List.of("KA01AB1123","KA01AB2234"));
+        when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),any())).thenReturn(vehicleEntities);
         assertEquals(12,bookingService.getVehicleAvailability(getVehiclesAvailable()).get(0).getSeatCapacity());
 
     }
@@ -272,11 +271,12 @@ class BookingServiceImplTest {
         vehiclesAvailable.setFromDate(null);
         vehiclesAvailable.setToDate(null);
         List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
+        vehicleEntities.get(0).setFilter(null);
         when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(vehicleEntities);
-        when(slotsRepo.getUnavailableList(Mockito.any(), Mockito.any())).thenReturn(List.of("KA01AB1123","KA01AB2234"));
         assertEquals(12,bookingService.getVehicleAvailability(vehiclesAvailable).get(0).getSeatCapacity());
 
     }
+
     @Test
     void getBookedSlotsByVehicleNumberTest(){
         when(slotsRepo.getByVehicleNUmber(Mockito.anyString())).thenReturn(List.of(getSlotEntity()));
@@ -328,8 +328,7 @@ class BookingServiceImplTest {
         VehiclesAvailable vehiclesAvailable = new VehiclesAvailable();
         vehiclesAvailable.setFromDate(LocalDate.now().minusDays(2));
         vehiclesAvailable.setToDate(LocalDate.now());
-        vehiclesAvailable.setIsAC(true);
-        vehiclesAvailable.setIsSleeper(true);
+        vehiclesAvailable.setFilter("AC/FS");
         return vehiclesAvailable;
     }
 
@@ -348,9 +347,8 @@ class BookingServiceImplTest {
         VehicleEntity vehicleEntity = new VehicleEntity();
         vehicleEntity.setVehicleNumber("1234");
         vehicleEntity.setSeatCapacity(12);
-        vehicleEntity.setIsVehicleAC(true);
+        vehicleEntity.setFilter("FS/AC");
         vehicleEntity.setS3ImageUrl(List.of("http/image"));
-        vehicleEntity.setIsVehicleSleeper(true);
         vehicleEntity.setVId(1L);
         return vehicleEntity;
     }

@@ -104,16 +104,16 @@ class VehicleControllerTest {
         );
         VehicleDto vehiclePojo = new VehicleDto();
         vehiclePojo.setSeatCapacity(4);
-        vehiclePojo.setIsVehicleAC(true);
-        vehiclePojo.setIsVehicleSleeper(true);
+        vehiclePojo.setVehicleAC("AC");
+        vehiclePojo.setSleeper("FS");
         when(vehicleService.updateVehicle(any(VehicleDto.class), Collections.singletonList(any(MultipartFile.class))))
                 .thenThrow(VehicleNumberException.class);
         mvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/updateVehicle")
                         .file(image)
                         .param("vehicleNumber", vehiclePojo.getVehicleNumber())
                         .param("seatCapacity", String.valueOf(vehiclePojo.getSeatCapacity()))
-                        .param("isVehicleAC", String.valueOf(vehiclePojo.getIsVehicleAC()))
-                        .param("isVehicleSleeper", String.valueOf(vehiclePojo.getIsVehicleSleeper()))
+                        .param("isVehicleAC", String.valueOf(vehiclePojo.getVehicleAC()))
+                        .param("isVehicleSleeper", String.valueOf(vehiclePojo.getSleeper()))
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().is5xxServerError());
     }
@@ -129,16 +129,16 @@ class VehicleControllerTest {
         VehicleDto vehiclePojo = new VehicleDto();
         vehiclePojo.setVehicleNumber("AB02C123");
         vehiclePojo.setSeatCapacity(4);
-        vehiclePojo.setIsVehicleAC(true);
-        vehiclePojo.setIsVehicleSleeper(true);
+        vehiclePojo.setVehicleAC("AC");
+        vehiclePojo.setSleeper("FS");
         when(vehicleService.updateVehicle(any(VehicleDto.class), Collections.singletonList(any(MultipartFile.class))))
                 .thenThrow(VehicleNumberException.class);
         mvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/updateVehicle")
                         .file(image)
                         .param("vehicleNumber", vehiclePojo.getVehicleNumber())
                         .param("seatCapacity", String.valueOf(vehiclePojo.getSeatCapacity()))
-                        .param("isVehicleAC", String.valueOf(vehiclePojo.getIsVehicleAC()))
-                        .param("isVehicleSleeper", String.valueOf(vehiclePojo.getIsVehicleSleeper()))
+                        .param("isVehicleAC", String.valueOf(vehiclePojo.getVehicleAC()))
+                        .param("isVehicleSleeper", String.valueOf(vehiclePojo.getSleeper()))
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().is5xxServerError());
     }
@@ -154,15 +154,15 @@ class VehicleControllerTest {
         VehicleDto vehiclePojo = new VehicleDto();
         vehiclePojo.setVehicleNumber("AB02C1234");
         vehiclePojo.setSeatCapacity(4);
-        vehiclePojo.setIsVehicleAC(true);
-        vehiclePojo.setIsVehicleSleeper(true);
+        vehiclePojo.setVehicleAC("AC");
+        vehiclePojo.setSleeper("FS");
         doReturn(getVehiclePojo()).when(vehicleService).updateVehicle(any(VehicleDto.class), anyList());
         mvc.perform(MockMvcRequestBuilders.multipart(HttpMethod.PUT, "/updateVehicle")
                         .file(image)
                         .param("vehicleNumber", vehiclePojo.getVehicleNumber())
                         .param("seatCapacity", String.valueOf(vehiclePojo.getSeatCapacity()))
-                        .param("isVehicleAC", String.valueOf(vehiclePojo.getIsVehicleAC()))
-                        .param("isVehicleSleeper", String.valueOf(vehiclePojo.getIsVehicleSleeper()))
+                        .param("isVehicleAC", String.valueOf(vehiclePojo.getVehicleAC()))
+                        .param("isVehicleSleeper", String.valueOf(vehiclePojo.getSleeper()))
                         .contentType(MediaType.MULTIPART_FORM_DATA))
                 .andExpect(status().isOk());
         verify(vehicleService, Mockito.times(1))

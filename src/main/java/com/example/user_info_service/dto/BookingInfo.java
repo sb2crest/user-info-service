@@ -25,9 +25,9 @@ public class BookingInfo {
 
     private String bookingStatus;
 
-    private Boolean isAc;
+    private String vehicleAC;
 
-    private Boolean isSleeper;
+    private String sleeper;
 
     private Integer seatCapacity;
 

@@ -64,6 +64,21 @@ class VehicleServiceImplementationTest {
         verify(vehicleInfoRepo, times(1)).getByVehicleNumber(any());
     }
 
+    @Test
+    void testAddVehicle_SuccessWhenFilterDataNotProvided() throws IOException {
+        VehicleDto vehiclePojo = getVehiclePojo();
+        VehicleEntity entity = getVehicleEntity();
+        when(modelMapper.map(entity, VehicleDto.class)).thenReturn(vehiclePojo);
+        when(vehicleInfoRepo.save(any())).thenReturn(entity);
+        when(vehicleInfoRepo.getByVehicleNumber(any())).thenReturn(null);
+        vehiclePojo.setSleeper(null);
+        vehiclePojo.setVehicleAC(null);
+        VehicleDto result = bookingServiceImplementation.addVehicle(vehiclePojo, null);
+        assertEquals(vehiclePojo.getVehicleNumber(), result.getVehicleNumber());
+        assertEquals(vehiclePojo.getSeatCapacity(), result.getSeatCapacity());
+        verify(vehicleInfoRepo, times(1)).getByVehicleNumber(any());
+    }
+
     @Test()
     void testAddVehicle_DuplicateNumber() {
         VehicleDto vehiclePojo = getVehiclePojo();
@@ -98,6 +113,36 @@ class VehicleServiceImplementationTest {
         when(amazonS3.getUrl(anyString(), anyString())).thenReturn(new URL("https://bucket.s3.amazonaws.com/image.jpg"));
         when(vehicleInfoRepo.save(any(VehicleEntity.class))).thenReturn(existingEntity);
         VehicleDto result = bookingServiceImplementation.updateVehicle(vehiclePojo, Collections.singletonList(image));
+        assertNotNull(result);
+        assertEquals("12", result.getVehicleNumber());
+    }
+
+    @Test
+    void testUpdateVehicle_When_S3ImagerUrl_Is_Null() throws IOException {
+        VehicleDto vehiclePojo = getVehiclePojo();
+        MultipartFile image = new MockMultipartFile("image.jpg", new byte[0]);
+        VehicleEntity existingEntity = getVehicleEntity();
+        existingEntity.setS3ImageUrl(null);
+        when(modelMapper.map(existingEntity, VehicleDto.class)).thenReturn(vehiclePojo);
+        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(existingEntity);
+        doNothing().when(amazonS3).deleteObject(anyString(), anyString());
+        when(amazonS3.getUrl(anyString(), anyString())).thenReturn(new URL("https://bucket.s3.amazonaws.com/image.jpg"));
+        when(vehicleInfoRepo.save(any(VehicleEntity.class))).thenReturn(existingEntity);
+        VehicleDto result = bookingServiceImplementation.updateVehicle(vehiclePojo, Collections.singletonList(image));
+        assertNotNull(result);
+        assertEquals("12", result.getVehicleNumber());
+    }
+
+    @Test
+    void testUpdateVehicle_When_Images_Is_Empty() throws IOException {
+        VehicleDto vehiclePojo = getVehiclePojo();
+        VehicleEntity existingEntity = getVehicleEntity();
+        when(modelMapper.map(existingEntity, VehicleDto.class)).thenReturn(vehiclePojo);
+        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(existingEntity);
+        doNothing().when(amazonS3).deleteObject(anyString(), anyString());
+        when(amazonS3.getUrl(anyString(), anyString())).thenReturn(new URL("https://bucket.s3.amazonaws.com/image.jpg"));
+        when(vehicleInfoRepo.save(any(VehicleEntity.class))).thenReturn(existingEntity);
+        VehicleDto result = bookingServiceImplementation.updateVehicle(vehiclePojo, List.of());
         assertNotNull(result);
         assertEquals("12", result.getVehicleNumber());
     }
@@ -157,22 +202,20 @@ class VehicleServiceImplementationTest {
         VehicleEntity entity2 = new VehicleEntity();
         entity2.setVehicleNumber("XYZ789");
         entity2.setSeatCapacity(6);
-        entity2.setIsVehicleAC(false);
-        entity2.setIsVehicleSleeper(false);
+        entity2.setFilter("NS/NC");
         entity2.setS3ImageUrl(Collections.singletonList("image2.jpg"));
         VehicleDto vehicleDto = getVehiclePojo();
 
         vehicleEntityList.add(entity1);
         vehicleEntityList.add(entity2);
         when(modelMapper.map(entity1, VehicleDto.class)).thenReturn(vehicleDto);
+        when(modelMapper.map(entity2, VehicleDto.class)).thenReturn(vehicleDto);
         when(vehicleInfoRepo.findAll()).thenReturn(vehicleEntityList);
         List<VehicleDto> result = bookingServiceImplementation.listAllVehicles();
         assertEquals(2, result.size());
 
         VehicleDto pojo1 = result.get(0);
         assertEquals(4, pojo1.getSeatCapacity());
-        assertEquals(true, pojo1.getIsVehicleAC());
-        assertEquals(true, pojo1.getIsVehicleSleeper());
         assertEquals(Collections.singletonList("image1.jpg"), pojo1.getS3ImageUrl());
     }
 
@@ -180,8 +223,8 @@ class VehicleServiceImplementationTest {
         VehicleDto vehiclePojo =new VehicleDto();
         vehiclePojo.setSeatCapacity(4);
         vehiclePojo.setVehicleNumber("12");
-        vehiclePojo.setIsVehicleAC(true);
-        vehiclePojo.setIsVehicleSleeper(true);
+        vehiclePojo.setVehicleAC("AC");
+        vehiclePojo.setSleeper("FS");
         vehiclePojo.setS3ImageUrl(List.of("image1.jpg"));
         return vehiclePojo;
     }
@@ -189,8 +232,7 @@ class VehicleServiceImplementationTest {
         VehicleEntity vehicleEntity =new VehicleEntity();
         vehicleEntity.setSeatCapacity(4);
         vehicleEntity.setVehicleNumber("12");
-        vehicleEntity.setIsVehicleAC(true);
-        vehicleEntity.setIsVehicleSleeper(true);
+        vehicleEntity.setFilter("FS/AC");
         vehicleEntity.setS3ImageUrl(List.of("image1.jpg"));
         return vehicleEntity;
     }

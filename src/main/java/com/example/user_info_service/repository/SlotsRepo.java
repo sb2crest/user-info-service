@@ -22,11 +22,4 @@ public interface SlotsRepo extends JpaRepository<SlotsEntity, Long> {
     @Query("SELECT s FROM SlotsEntity s WHERE s.vehicleNumber = :vehicleNumber")
     List<SlotsEntity> getByVehicleNUmber(String vehicleNumber);
 
-    @Query("SELECT DISTINCT s.vehicleNumber FROM SlotsEntity s " +
-            "WHERE s.vehicleNumber IN (" +
-            "    SELECT DISTINCT s1.vehicleNumber FROM SlotsEntity s1 " +
-            "    WHERE (s1.fromDate BETWEEN :fromDate AND :toDate) or" +
-            "    (s1.toDate BETWEEN :fromDate AND :toDate)"+
-            ")")
-    List<String> getUnavailableList(LocalDate fromDate, LocalDate toDate);
 }

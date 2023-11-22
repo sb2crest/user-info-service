@@ -4,9 +4,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.example.user_info_service.dto.VehicleDto;
 import com.example.user_info_service.entity.VehicleEntity;
+import com.example.user_info_service.exception.ACType;
 import com.example.user_info_service.exception.ResStatus;
+import com.example.user_info_service.exception.SleeperType;
 import com.example.user_info_service.exception.VehicleNumberException;
 import com.example.user_info_service.repository.VehicleInfoRepo;
+import com.example.user_info_service.util.CommonFunction;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +49,7 @@ public class VehicleServiceImplementation implements VehicleService {
             vehicleEntity = new VehicleEntity();
             vehicleEntity.setSeatCapacity(vehicleDto.getSeatCapacity());
             vehicleEntity.setVehicleNumber(vehicleDto.getVehicleNumber());
-            vehicleEntity.setIsVehicleAC(vehicleDto.getIsVehicleAC());
-            vehicleEntity.setIsVehicleSleeper(vehicleDto.getIsVehicleSleeper());
+            appendFilter(vehicleEntity, vehicleDto);
             vehicleEntity.setDriverName(vehicleDto.getDriverName());
             vehicleEntity.setDriverNumber(vehicleDto.getDriverNumber());
             vehicleEntity.setAlternateNumber(vehicleDto.getAlternateNumber());
@@ -63,7 +65,6 @@ public class VehicleServiceImplementation implements VehicleService {
             throw new VehicleNumberException(ResStatus.DUPLICATE_NUMBER);
         }
 
-
     }
 
     @Override
@@ -72,11 +73,13 @@ public class VehicleServiceImplementation implements VehicleService {
         if (isNull(vehicleEntity)) {
             throw new VehicleNumberException(VEHICLE_NOT_FOUND);
         }
-        return modelMapper.map(vehicleEntity, VehicleDto.class);
+        VehicleDto vehicleDto = modelMapper.map(vehicleEntity, VehicleDto.class);
+        getFilterDetails(vehicleDto, vehicleEntity);
+        return vehicleDto;
     }
 
     @Override
-    public VehicleDto updateVehicle(VehicleDto vehicleDto, List<MultipartFile> images)  {
+    public VehicleDto updateVehicle(VehicleDto vehicleDto, List<MultipartFile> images) {
         VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(vehicleDto.getVehicleNumber());
         if (vehicleEntity == null) {
             return addVehicle(vehicleDto, images);
@@ -92,14 +95,13 @@ public class VehicleServiceImplementation implements VehicleService {
         vehicleEntity.setS3ImageUrl(s3ImageUrl);
         vehicleEntity.setSeatCapacity(vehicleDto.getSeatCapacity());
         vehicleEntity.setVehicleNumber(vehicleDto.getVehicleNumber());
-        vehicleEntity.setIsVehicleAC(vehicleDto.getIsVehicleAC());
-        vehicleEntity.setIsVehicleSleeper(vehicleDto.getIsVehicleSleeper());
+        appendFilter(vehicleEntity, vehicleDto);
         vehicleEntity.setDriverName(vehicleDto.getDriverName());
         vehicleEntity.setDriverNumber(vehicleDto.getDriverNumber());
         vehicleEntity.setAlternateNumber(vehicleDto.getAlternateNumber());
         vehicleEntity.setEmergencyNumber(vehicleDto.getEmergencyNumber());
         VehicleEntity saveResponse = vehicleInfoRepo.save(vehicleEntity);
-        return modelMapper.map(saveResponse,VehicleDto.class);
+        return modelMapper.map(saveResponse, VehicleDto.class);
 
     }
 
@@ -167,7 +169,26 @@ public class VehicleServiceImplementation implements VehicleService {
         List<VehicleDto> vehicleDtoList = new ArrayList<>();
         List<VehicleEntity> vehicleEntityList = vehicleInfoRepo.findAll();
         collectionAsStream(vehicleEntityList)
-                .forEach(entity -> vehicleDtoList.add(modelMapper.map(entity, VehicleDto.class)));
+                .forEach(entity -> {
+                    VehicleDto vehicleDto = modelMapper.map(entity, VehicleDto.class);
+                    getFilterDetails(vehicleDto, entity);
+                    vehicleDtoList.add(vehicleDto);
+                });
         return vehicleDtoList;
+    }
+
+    void appendFilter(VehicleEntity vehicleEntity, VehicleDto vehicleDto) {
+        String sleeper = (vehicleDto.getSleeper() != null) ? vehicleDto.getSleeper() : SleeperType.NON_SLEEPER.getCode();
+        String ac = (vehicleDto.getVehicleAC() != null) ? vehicleDto.getVehicleAC() : ACType.NON_AC.getCode();
+
+        String filter = String.format("%s/%s", ac, sleeper);
+
+        vehicleEntity.setFilter(filter);
+    }
+
+    private void getFilterDetails(VehicleDto vehicleDto, VehicleEntity vehicleEntity) {
+        String[] filterDetails = CommonFunction.splitUsingSlash(vehicleEntity.getFilter());
+        vehicleDto.setSleeper(SleeperType.getDescByCode(filterDetails[0]));
+        vehicleDto.setVehicleAC(ACType.getDescByCode(filterDetails[1]));
     }
 }
