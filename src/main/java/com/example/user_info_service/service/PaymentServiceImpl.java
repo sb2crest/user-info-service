@@ -1,5 +1,6 @@
 package com.example.user_info_service.service;
 
+import com.example.user_info_service.entity.BookingEntity;
 import com.example.user_info_service.entity.PaymentEntity;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
@@ -7,6 +8,7 @@ import com.example.user_info_service.dto.BookingResponse;
 import com.example.user_info_service.dto.PaymentData;
 import com.example.user_info_service.dto.PaymentDto;
 import com.example.user_info_service.dto.PaymentResponse;
+import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.PaymentRepository;
 import com.razorpay.Order;
@@ -24,7 +26,8 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @Slf4j
@@ -46,6 +49,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     BookingRepo bookingRepo;
+
+    private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss");
 
     public PaymentServiceImpl() {
     }
@@ -76,14 +81,14 @@ public class PaymentServiceImpl implements PaymentService {
                 PaymentEntity paymentEntity = new PaymentEntity();
                 paymentEntity.setRazorPayOrderId(razorpayOrderId);
                 paymentEntity.setAmount(paymentDto.getAmount());
-                paymentEntity.setPaymentDate(new Date());
+                paymentEntity.setPaymentDate(LocalDateTime.now());
                 paymentEntity.setBookingId(paymentDto.getBookingId());
                 paymentRepository.save(paymentEntity);
 
                 response.setStatus("success");
                 response.setMessage("Payment created successfully");
                 response.setRazorPayOrderId(razorpayOrderId);
-                response.setPaymentDate(paymentEntity.getPaymentDate());
+                response.setPaymentDate(localDateFormat.format(paymentEntity.getPaymentDate()));
             } catch (RazorpayException e) {
                 response.setStatus("error");
                 response.setMessage("Error creating Razorpay order: " + e.getMessage());
@@ -129,6 +134,9 @@ public class PaymentServiceImpl implements PaymentService {
             paymentEntity.setRazorPayPaymentId(paymentData.getRazorPayPaymentId());
             paymentEntity.setPaymentStatus(STATUS);
 
+            BookingEntity bookingEntity = bookingRepo.getByBookingId(paymentEntity.getBookingId());
+            bookingEntity.setBookingStatus(BookingStatusEnum.BOOKED.getCode());
+            bookingRepo.save(bookingEntity);
             paymentRepository.save(paymentEntity);
             bookingResponse.setMessage("Payment Successful");
             bookingResponse.setStatusCode(HttpStatus.OK.value());

@@ -1,9 +1,11 @@
 package com.example.user_info_service.service;
 
 import com.example.user_info_service.dto.BookingResponse;
+import com.example.user_info_service.entity.BookingEntity;
 import com.example.user_info_service.entity.PaymentEntity;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.dto.PaymentData;
+import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.PaymentRepository;
 import com.razorpay.Order;
@@ -24,8 +26,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 
+
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -54,6 +56,7 @@ public class PaymentServiceImplTest {
     @Test
     public void testVerifyRazorpaySignature_Success() {
         when(paymentRepository.findBookingIdByRazorPayOrderId(Mockito.anyString())).thenReturn(getPaymentEntity());
+        when(bookingRepo.getByBookingId(Mockito.any())).thenReturn(getBookingEntity());
         ResponseEntity<BookingResponse> response = paymentService.verifyRazorpaySignature(getPaymentData());
 
         assertNotNull(response);
@@ -82,6 +85,7 @@ public class PaymentServiceImplTest {
         PaymentEntity paymentEntity = new PaymentEntity();
         paymentEntity.setRazorPayOrderId("order123");
         paymentEntity.setPaymentStatus("SUCCESS");
+        paymentEntity.setBookingId("123");
         return paymentEntity;
     }
 
@@ -101,5 +105,12 @@ public class PaymentServiceImplTest {
         orderRequest.put("receipt", "payment_receipt_123456");
         orderRequest.put("id", "mockedOrder123");
         return new Order(orderRequest);
+    }
+
+    BookingEntity getBookingEntity() {
+        BookingEntity bookingEntity = new BookingEntity();
+        bookingEntity.setBookingId("123");
+        bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+        return bookingEntity;
     }
 }

@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -23,9 +23,8 @@ public class PaymentEntity {
     @Column(name = "amount")
     private double amount;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "payment_date")
-    private Date paymentDate;
+    private LocalDateTime paymentDate;
 
     @Column(name = "booking_id")
     private String bookingId;
