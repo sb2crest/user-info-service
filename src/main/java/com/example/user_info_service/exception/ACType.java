@@ -18,12 +18,12 @@ public enum ACType {
     }
 
     public static String getDescByCode(String code) {
-        return Arrays.stream(values()).filter(acType -> acType.code.equals(code)).findFirst()
+        return Arrays.stream(values()).filter(acType -> acType.code.equalsIgnoreCase(code)).findFirst()
                 .map(acType -> acType.desc).orElse(code);
     }
 
     public static String getCodeByDesc(String desc) {
-        return Arrays.stream(values()).filter(acType -> acType.desc.equals(desc)).findFirst()
+        return Arrays.stream(values()).filter(acType -> acType.desc.equalsIgnoreCase(desc)).findFirst()
                 .map(acType -> acType.code).orElse(desc);
     }
 }

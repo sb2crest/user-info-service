@@ -188,7 +188,7 @@ public class VehicleServiceImplementation implements VehicleService {
 
     private void getFilterDetails(VehicleDto vehicleDto, VehicleEntity vehicleEntity) {
         String[] filterDetails = CommonFunction.splitUsingSlash(vehicleEntity.getFilter());
-        vehicleDto.setSleeper(SleeperType.getDescByCode(filterDetails[0]));
-        vehicleDto.setVehicleAC(ACType.getDescByCode(filterDetails[1]));
+        vehicleDto.setSleeper(SleeperType.getDescByCode(filterDetails[1]));
+        vehicleDto.setVehicleAC(ACType.getDescByCode(filterDetails[0]));
     }
 }

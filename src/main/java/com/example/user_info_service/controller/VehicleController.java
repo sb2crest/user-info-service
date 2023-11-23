@@ -68,8 +68,7 @@ public class VehicleController {
     }
     @GetMapping("/listVehicles")
     ResponseEntity<List<VehicleDto>> listVehicles() {
-        List<VehicleDto> vehicles = vehicleService.listAllVehicles();
-        return new ResponseEntity<>(vehicles, HttpStatus.OK);
+        return new ResponseEntity<>(vehicleService.listAllVehicles(), HttpStatus.OK);
     }
 
 }
