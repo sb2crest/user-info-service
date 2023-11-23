@@ -7,7 +7,7 @@ import java.util.Arrays;
 @Getter
 public enum ACType {
     AC("AC", "AC"),
-    NON_AC("NA", "Non AC");
+    NON_AC("NA", "Non-AC");
 
     private final String code;
     private final String desc;
