@@ -6,9 +6,9 @@ import java.util.Arrays;
 
 @Getter
 public enum SleeperType {
-    FULL_SLEEPER("FS" , "Full-Sleeper"),
+    SLEEPER("FS" , "Sleeper"),
     SEMI_SLEEPER("SS" , "Semi-Sleeper"),
-    NON_SLEEPER("NS" , "Non-Sleeper");
+    SEATER("NS" , "Seater");
 
     private final String code;
     private final String desc;

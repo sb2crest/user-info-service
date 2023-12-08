@@ -28,7 +28,7 @@ public class CommonFunction {
         String sleeperDetail = filter[1];
 
         List<String> sleeperDetails = sleeperDetail.equalsIgnoreCase(ALL)
-                ? Arrays.asList(SleeperType.FULL_SLEEPER.getCode(), SleeperType.SEMI_SLEEPER.getCode(), SleeperType.NON_SLEEPER.getCode())
+                ? Arrays.asList(SleeperType.SLEEPER.getCode(), SleeperType.SEMI_SLEEPER.getCode(), SleeperType.SEATER.getCode())
                 : Arrays.asList(splitUsingComma(sleeperDetail));
 
         return getList(acDetail, sleeperDetails);

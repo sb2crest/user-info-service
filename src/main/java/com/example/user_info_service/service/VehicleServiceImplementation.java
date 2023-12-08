@@ -178,7 +178,7 @@ public class VehicleServiceImplementation implements VehicleService {
     }
 
     void appendFilter(VehicleEntity vehicleEntity, VehicleDto vehicleDto) {
-        String sleeper = (vehicleDto.getSleeper() != null) ? vehicleDto.getSleeper() : SleeperType.NON_SLEEPER.getCode();
+        String sleeper = (vehicleDto.getSleeper() != null) ? vehicleDto.getSleeper() : SleeperType.SEATER.getCode();
         String ac = (vehicleDto.getVehicleAC() != null) ? vehicleDto.getVehicleAC() : ACType.NON_AC.getCode();
 
         String filter = String.format("%s/%s", ac, sleeper);
