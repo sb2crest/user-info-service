@@ -54,7 +54,7 @@ class MonthlyReportSchedulerTest {
         ReflectionTestUtils.setField(scheduler, "mailStartTlsEnable", true);
         ReflectionTestUtils.setField(scheduler, "mailSocketFactoryClass", "socket");
         ReflectionTestUtils.setField(scheduler, "mailDebug", true);
-        ReflectionTestUtils.setField(scheduler, "logo", "https://vehicleimage.s3.ap-south-1.amazonaws.com/LOGO.png");
+        ReflectionTestUtils.setField(scheduler, "logo", "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Image_created_with_a_mobile_phone.png/1200px-Image_created_with_a_mobile_phone.png");
 
     }
 
