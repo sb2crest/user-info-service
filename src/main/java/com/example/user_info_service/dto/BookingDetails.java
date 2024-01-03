@@ -15,7 +15,11 @@ public class BookingDetails {
 
     private String bookingStatus;
 
-    private Double amountPaid;
+    private Double AdvancedPaid;
+
+    private Double TotalAmt;
+
+    private Double RemainingAmt;
 
     private VehicleDto vehicle;
 

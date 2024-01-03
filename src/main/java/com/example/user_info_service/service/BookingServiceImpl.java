@@ -106,6 +106,7 @@ public class BookingServiceImpl implements BookingService {
         bookingEntity.setMobile(bookingDto.getUser().getMobile());
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
         bookingEntity.setBookingDate(LocalDate.now());
+        bookingEntity.setTotalAmount(bookingDto.getTotalAmount());
         bookingRepo.save(bookingEntity);
     }
 
@@ -169,16 +170,18 @@ public class BookingServiceImpl implements BookingService {
         bookingDetails.setBookingId(bookingEntity.getBookingId());
         bookingDetails.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
         bookingDetails.setBookingDate(bookingEntity.getBookingDate());
-        if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
-            bookingDetails.setAmountPaid(getAmount(bookingEntity));
+        bookingDetails.setTotalAmt(bookingEntity.getTotalAmount());
+        if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
+            bookingDetails.setAdvancedPaid(getAmount(bookingEntity));
+            bookingDetails.setRemainingAmt(bookingEntity.getTotalAmount() - bookingEntity.getAdvanceAmountPaid());
         }
     }
 
     Double getAmount(BookingEntity bookingEntity){
         if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
-            PaymentEntity paymentEntity = paymentRepository.findByBookingId(bookingEntity.getBookingId());
-            validatePaymentEntity(paymentEntity);
-            return paymentEntity.getAmount();
+            List<PaymentEntity> paymentEntities = paymentRepository.findByBookingId(bookingEntity.getBookingId());
+            validatePaymentEntityList(paymentEntities);
+            return paymentEntities.stream().mapToDouble(PaymentEntity::getAmount).sum();
         }
         return null;
     }
@@ -412,7 +415,7 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
-    private void validatePaymentEntity(PaymentEntity paymentEntity) {
+    private void validatePaymentEntityList(List<PaymentEntity> paymentEntity) {
         if (paymentEntity == null) {
             throw new BookingException(ResStatus.PAYMENT_DETAILS_NOT_FOUND);
         }

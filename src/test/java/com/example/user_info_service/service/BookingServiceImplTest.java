@@ -184,7 +184,7 @@ class BookingServiceImplTest {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(getPaymentEntity());
+        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(List.of(getPaymentEntity()));
         when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
         assertNotNull(bookingService.getBookingDetails("1234567890"));
     }
@@ -294,7 +294,7 @@ class BookingServiceImplTest {
     void getBookingInfoByMobileTest(){
         when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(getPaymentEntity());
+        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(List.of(getPaymentEntity()));
         BookingAccess response = bookingService.getBookingInfoByMobile("123");
         assertNotNull(response);
         assertEquals(response.getUpcoming().get(0).getUserName(),"abc abc");
@@ -397,6 +397,9 @@ class BookingServiceImplTest {
         bookingEntity.setToDate(LocalDate.now());
         bookingEntity.setBookingDate(LocalDate.now().minusWeeks(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+        bookingEntity.setTotalAmount(10000.00);
+        bookingEntity.setAdvanceAmountPaid(5000.00);
+        bookingEntity.setRemainingAmount(5000.00);
         bookingEntity.setUserEntity(getUserEntity());
 
         BookingEntity bookingEntity1 = new BookingEntity();
@@ -409,6 +412,9 @@ class BookingServiceImplTest {
         bookingEntity1.setToDate(LocalDate.now());
         bookingEntity1.setBookingDate(LocalDate.now().minusWeeks(1));
         bookingEntity1.setBookingStatus(BookingStatusEnum.BOOKED.getCode());
+        bookingEntity1.setTotalAmount(10000.00);
+        bookingEntity1.setAdvanceAmountPaid(5000.00);
+        bookingEntity1.setRemainingAmount(5000.00);
         bookingEntity1.setUserEntity(getUserEntity());
 
         BookingEntity bookingEntity2 = new BookingEntity();
@@ -421,6 +427,9 @@ class BookingServiceImplTest {
         bookingEntity2.setToDate(LocalDate.now());
         bookingEntity2.setBookingDate(LocalDate.now().minusWeeks(1));
         bookingEntity2.setBookingStatus(BookingStatusEnum.COMPLETED.getCode());
+        bookingEntity2.setTotalAmount(10000.00);
+        bookingEntity2.setAdvanceAmountPaid(5000.00);
+        bookingEntity2.setRemainingAmount(5000.00);
         bookingEntity2.setUserEntity(getUserEntity());
 
         bookingEntityList.add(bookingEntity);

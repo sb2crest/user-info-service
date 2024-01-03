@@ -44,6 +44,15 @@ public class BookingEntity implements Serializable {
     @Column(name = "booking_date")
     private LocalDate bookingDate;
 
+    @Column(name = "total_amt")
+    private Double totalAmount;
+
+    @Column(name = "ad_amt_paid")
+    private Double AdvanceAmountPaid;
+
+    @Column(name = "remaining_amt")
+    private Double remainingAmount;
+
     @ManyToOne
     @JoinColumn(name = "mobile",referencedColumnName = "mobile", updatable = false, insertable = false)
     private UserEntity userEntity;

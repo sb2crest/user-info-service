@@ -1,6 +1,8 @@
 package com.example.user_info_service.service;
 
 import com.example.user_info_service.dto.BookingResponse;
+import com.example.user_info_service.dto.PaymentDto;
+import com.example.user_info_service.dto.PaymentResponse;
 import com.example.user_info_service.entity.BookingEntity;
 import com.example.user_info_service.entity.PaymentEntity;
 import com.example.user_info_service.exception.BookingException;
@@ -28,6 +30,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -51,7 +54,26 @@ public class PaymentServiceImplTest {
         ReflectionTestUtils.setField(paymentService,"keyID","anjds123");
         ReflectionTestUtils.setField(paymentService,"keySecret","anhjsd123");
 
+
     }
+
+    @Test
+    public void testCreatePaymentWhenThrowsException() {
+        PaymentDto paymentDto = getPaymentDto();
+        when(bookingRepo.validateUsingIdAndMobile(eq("booking123"), eq("1234567890"))).thenReturn(true);
+        PaymentResponse response = paymentService.createPayment(paymentDto);
+
+        assertEquals("error", response.getStatus());
+    }
+
+    @Test
+    public void testCreatePaymentWithInvalidBooking() {
+        PaymentDto paymentDto = getPaymentDto();
+        when(bookingRepo.validateUsingIdAndMobile(eq("booking123"), eq("1234567890"))).thenReturn(false);
+        BookingException exception = assertThrows(BookingException.class, () -> paymentService.createPayment(paymentDto));
+        assertEquals("5008: No record found with matching ID and Mobile Number : 500 INTERNAL_SERVER_ERROR", exception.getMessage());
+    }
+
 
     @Test
     public void testVerifyRazorpaySignature_Success() {
@@ -67,10 +89,8 @@ public class PaymentServiceImplTest {
     public void testVerifyRazorpaySignature_InvalidSignature() {
         PaymentData paymentData = getPaymentData();
         paymentData.setRazorPaySignature("abc");
-
         when(paymentRepository.findBookingIdByRazorPayOrderId(Mockito.anyString())).thenReturn(getPaymentEntity());
         ResponseEntity<BookingResponse> response = paymentService.verifyRazorpaySignature(paymentData);
-
         assertNotNull(response);
         assertEquals(HttpStatus.PAYMENT_REQUIRED, response.getStatusCode());
     }
@@ -86,10 +106,11 @@ public class PaymentServiceImplTest {
         paymentEntity.setRazorPayOrderId("order123");
         paymentEntity.setPaymentStatus("SUCCESS");
         paymentEntity.setBookingId("123");
+        paymentEntity.setAmount(1000.00);
         return paymentEntity;
     }
 
-    PaymentData getPaymentData(){
+    PaymentData getPaymentData() {
         PaymentData paymentData = new PaymentData();
         paymentData.setRazorPayOrderId("order123");
         paymentData.setRazorPayPaymentId("payment123");
@@ -111,6 +132,16 @@ public class PaymentServiceImplTest {
         BookingEntity bookingEntity = new BookingEntity();
         bookingEntity.setBookingId("123");
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+        bookingEntity.setTotalAmount(10000.00);
         return bookingEntity;
+    }
+
+    PaymentDto getPaymentDto() {
+        PaymentDto paymentDto = new PaymentDto();
+        paymentDto.setBookingId("booking123");
+        paymentDto.setMobile("1234567890");
+        paymentDto.setAmount(1000);
+
+        return paymentDto;
     }
 }

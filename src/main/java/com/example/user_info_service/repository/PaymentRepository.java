@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
 
@@ -13,6 +15,6 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
   PaymentEntity findBookingIdByRazorPayOrderId(@Param("razorPayOrderId") String razorPayOrderId);
 
   @Query("SELECT p FROM PaymentEntity p WHERE p.bookingId = :bookingId")
-  PaymentEntity findByBookingId( String bookingId);
+  List<PaymentEntity> findByBookingId(String bookingId);
 
 }

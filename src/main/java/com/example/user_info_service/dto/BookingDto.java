@@ -19,4 +19,6 @@ public class BookingDto {
     private UserDto user;
 
     private SlotsDto slots;
+
+    private Double totalAmount;
 }

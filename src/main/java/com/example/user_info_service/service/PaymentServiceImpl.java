@@ -59,9 +59,15 @@ public class PaymentServiceImpl implements PaymentService {
         this.razorPayClient = razorPayClient;
     }
 
+
+        public PaymentServiceImpl(RazorpayClient razorpayClient, String keyID, String keySecret) {
+            this.razorPayClient = razorpayClient;
+            this.keyID = keyID;
+            this.keySecret = keySecret;
+        }
+
     @Override
     public PaymentResponse createPayment(PaymentDto paymentDto) {
-
         PaymentResponse response = new PaymentResponse();
 
         Boolean validate = bookingRepo.validateUsingIdAndMobile(paymentDto.getBookingId(), paymentDto.getMobile());
@@ -136,6 +142,9 @@ public class PaymentServiceImpl implements PaymentService {
 
             BookingEntity bookingEntity = bookingRepo.getByBookingId(paymentEntity.getBookingId());
             bookingEntity.setBookingStatus(BookingStatusEnum.BOOKED.getCode());
+            double paid = bookingEntity.getAdvanceAmountPaid() != null ? bookingEntity.getAdvanceAmountPaid() : 0.00;
+            bookingEntity.setAdvanceAmountPaid(paid + paymentEntity.getAmount());
+            bookingEntity.setRemainingAmount(bookingEntity.getTotalAmount() - bookingEntity.getAdvanceAmountPaid());
             bookingRepo.save(bookingEntity);
             paymentRepository.save(paymentEntity);
             bookingResponse.setMessage("Payment Successful");
