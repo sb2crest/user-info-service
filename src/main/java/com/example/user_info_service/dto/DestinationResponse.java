@@ -13,5 +13,11 @@ public class DestinationResponse {
 
     private String destination;
 
-    private Double amount;
+    private Double totalAmount;
+
+    private Double advanceAmt;
+
+    private Double remainingAmt;
+
+    private Double amtPerKM;
 }

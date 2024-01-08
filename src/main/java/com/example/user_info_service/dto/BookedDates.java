@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class BookedDates {
 
-    private LocalDate date;
+    private String date;
 
     private Boolean isBooked;
 }

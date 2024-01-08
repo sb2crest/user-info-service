@@ -36,7 +36,7 @@ public class PaymentServiceImpl implements PaymentService {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    RazorpayClient razorPayClient;
+    private RazorpayClient razorPayClient;
 
     @Value("${razorpay.api.key.id}")
     private String keyID;
@@ -53,12 +53,12 @@ public class PaymentServiceImpl implements PaymentService {
     private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss");
 
     public PaymentServiceImpl() {
+        this.razorPayClient = null;
     }
 
     public PaymentServiceImpl(RazorpayClient razorPayClient) {
         this.razorPayClient = razorPayClient;
     }
-
 
         public PaymentServiceImpl(RazorpayClient razorpayClient, String keyID, String keySecret) {
             this.razorPayClient = razorpayClient;
@@ -163,7 +163,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     private void validationPaymentEntity(PaymentEntity paymentEntity) {
-        if(paymentEntity == null){
+        if (paymentEntity == null) {
             throw new BookingException(ResStatus.PAYMENT_DETAILS_NOT_FOUND);
         }
     }

@@ -9,9 +9,9 @@ import org.springframework.stereotype.Repository;
 public interface MasterEntityRepo extends JpaRepository<MasterEntity,Long> {
 
 
-    @Query("SELECT m FROM MasterEntity m WHERE LOWER(m.source) = LOWER(:source) AND LOWER(m.destination) = LOWER(:destination)")
-    MasterEntity findBySourceAndDestination(String source, String destination);
+    @Query("SELECT m FROM MasterEntity m WHERE LOWER(m.source) = LOWER(:source) AND LOWER(m.destination) = LOWER(:destination) AND m.vehicleNumber = :vehicleNumber")
+    MasterEntity findBySourceAndDestination(String source, String destination, String vehicleNumber);
 
-    @Query("select m from MasterEntity m where m.source = :trip")
-    MasterEntity findTripAmount(String trip);
+    @Query("select m from MasterEntity m where m.source = :trip and m.vehicleNumber = :vehicleNumber")
+    MasterEntity findTripAmount(String trip, String vehicleNumber);
 }

@@ -16,6 +16,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 
@@ -36,8 +37,8 @@ class DestinationServiceImplTest {
 
     @Test
     public void getAmountDetails_For_Trip() throws IOException {
-        when(destinationRepository.getAmountData(Mockito.any())).thenReturn(getDestinationEntity());
-        when(masterEntityRepo.findTripAmount(Mockito.any())).thenReturn(getMasterEntity());
+        when(destinationRepository.getAmountData(Mockito.any(), any())).thenReturn(getDestinationEntity());
+        when(masterEntityRepo.findTripAmount(Mockito.any(), any())).thenReturn(getMasterEntity());
         when(distanceService.calculateDistance(Mockito.any())).thenReturn(getDistanceResponse());
         Assertions.assertNotNull(destinationServiceImpl.getAmountDetails(getDistanceRequest()));
 
@@ -47,8 +48,8 @@ class DestinationServiceImplTest {
     public void getAmountDetails_For_Event() throws IOException {
         DistanceRequest distanceRequest = getDistanceRequest();
         distanceRequest.setMultipleDestination(false);
-        when(destinationRepository.getAmountData(Mockito.any())).thenReturn(getDestinationEntity());
-        when(masterEntityRepo.findTripAmount(Mockito.any())).thenReturn(getMasterEntity());
+        when(destinationRepository.getAmountData(Mockito.any(), any())).thenReturn(getDestinationEntity());
+        when(masterEntityRepo.findTripAmount(Mockito.any(), any())).thenReturn(getMasterEntity());
         when(distanceService.calculateDistance(Mockito.any())).thenReturn(getDistanceResponse());
         Assertions.assertNotNull(destinationServiceImpl.getAmountDetails(distanceRequest));
 
@@ -60,8 +61,8 @@ class DestinationServiceImplTest {
         distanceRequest.setMultipleDestination(false);
         DistanceResponse distanceResponse = getDistanceResponse();
         distanceResponse.setDistance(350.00);
-        when(destinationRepository.getAmountData(Mockito.any())).thenReturn(getDestinationEntity());
-        when(masterEntityRepo.findTripAmount(Mockito.any())).thenReturn(getMasterEntity());
+        when(destinationRepository.getAmountData(Mockito.any(), any())).thenReturn(getDestinationEntity());
+        when(masterEntityRepo.findTripAmount(Mockito.any(), any())).thenReturn(getMasterEntity());
         when(distanceService.calculateDistance(Mockito.any())).thenReturn(distanceResponse);
         Assertions.assertNotNull(destinationServiceImpl.getAmountDetails(distanceRequest));
 
@@ -72,6 +73,7 @@ class DestinationServiceImplTest {
         destinationEntity.setId(1L);
         destinationEntity.setDistance(258.97);
         destinationEntity.setAmount(2568.98);
+        destinationEntity.setVehicleNumber("KA01HJ1234");
         return destinationEntity;
 
     }
@@ -88,7 +90,8 @@ class DestinationServiceImplTest {
         masterEntity.setId(1L);
         masterEntity.setSource("AND");
         masterEntity.setDestination("ODF");
-        masterEntity.setAdvanceAmount(1234.90);
+        masterEntity.setAmount(1234.90);
+        masterEntity.setVehicleNumber("KA01HJ1234");
         return masterEntity;
     }
 

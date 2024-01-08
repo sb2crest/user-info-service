@@ -24,4 +24,7 @@ public class DestinationEntity implements Serializable {
 
     @Column(name = "amount")
     private Double amount;
+
+    @Column(name = "vehicle_number")
+    private String vehicleNumber;
 }

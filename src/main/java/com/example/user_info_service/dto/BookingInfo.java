@@ -21,6 +21,12 @@ public class BookingInfo {
 
     private Double amount;
 
+    private Double AdvancedPaid;
+
+    private Double TotalAmt;
+
+    private Double RemainingAmt;
+
     private String bookingId;
 
     private String bookingStatus;

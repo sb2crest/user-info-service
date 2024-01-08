@@ -32,7 +32,13 @@ public class DistanceService {
                     distanceRequest.getSourceLatitude(), distanceRequest.getSourceLongitude(),
                     distanceRequest.getDestinationLatitude(), distanceRequest.getDestinationLongitude()
             );
-            distanceResponse.setDistance(distance);
+
+            double returningDistance = getRouteDistance(
+                    distanceRequest.getDestinationLatitude(), distanceRequest.getDestinationLongitude(),
+                    distanceRequest.getSourceLatitude(), distanceRequest.getSourceLongitude()
+            );
+            double averageDistance = Math.round((distance + returningDistance) / 2);
+            distanceResponse.setDistance(averageDistance);
             distanceResponse.setMultipleDestination(Boolean.FALSE);
             return distanceResponse;
         }

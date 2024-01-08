@@ -227,6 +227,9 @@ public class BookingServiceImpl implements BookingService {
         bookingInfo.setBookingId(bookingEntity.getBookingId());
         bookingInfo.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
         bookingInfo.setAmount(getAmount(bookingEntity));
+        bookingInfo.setTotalAmt(bookingInfo.getTotalAmt());
+        bookingInfo.setAdvancedPaid(bookingEntity.getAdvanceAmountPaid());
+        bookingInfo.setRemainingAmt(bookingInfo.getRemainingAmt());
         return bookingInfo;
     }
 
@@ -303,14 +306,14 @@ public class BookingServiceImpl implements BookingService {
         }
 
         for (SlotsEntity slotsEntity : slotsEntityList) {
-            bookedDatesList.add(new BookedDates(slotsEntity.getFromDate(), Boolean.TRUE));
+            bookedDatesList.add(new BookedDates(localDateFormat.format(slotsEntity.getFromDate()), Boolean.TRUE));
 
             List<LocalDate> inBetweenDates = generateInBetweenDates(slotsEntity.getFromDate(), slotsEntity.getToDate());
             for (LocalDate date : inBetweenDates) {
-                bookedDatesList.add(new BookedDates(date, Boolean.TRUE));
+                bookedDatesList.add(new BookedDates(localDateFormat.format(date), Boolean.TRUE));
             }
 
-            bookedDatesList.add(new BookedDates(slotsEntity.getToDate(), Boolean.TRUE));
+            bookedDatesList.add(new BookedDates(localDateFormat.format(slotsEntity.getToDate()), Boolean.TRUE));
         }
 
         slots.setVehicleNumber(vehicleNumber);

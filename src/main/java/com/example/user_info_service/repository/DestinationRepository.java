@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DestinationRepository extends JpaRepository<DestinationEntity,Long> {
 
-    @Query("select d from DestinationEntity d where d.distance =:distance")
-    DestinationEntity getAmountData(Double distance);
+    @Query("select d from DestinationEntity d where d.distance =:distance and d.vehicleNumber = :vehicleNumber")
+    DestinationEntity getAmountData(Double distance, String vehicleNumber);
 }

@@ -22,4 +22,6 @@ public class DistanceRequest {
     private Double destinationLongitude;
 
     private Boolean multipleDestination;
+
+    private String vehicleNumber;
 }

@@ -30,22 +30,24 @@ public class DestinationServiceImpl implements DestinationService {
     @Override
     public DestinationResponse getAmountDetails(DistanceRequest distanceRequest) throws IOException {
         DestinationResponse destinationResponse = new DestinationResponse();
-        MasterEntity masterEntity =  getTripOrSourceAndDestination(distanceRequest);
+        MasterEntity masterEntity = getTripOrSourceAndDestination(distanceRequest);
 
         if (masterEntity != null) {
             setResponse(destinationResponse, masterEntity, distanceRequest);
-             return destinationResponse;
+            return destinationResponse;
         }
         DistanceResponse distanceResponse = distanceService.calculateDistance(distanceRequest);
-        log.info("distance {}",distanceResponse.getDistance());
+        log.info("distance {}", distanceResponse.getDistance());
         double distance = roundToNearestMultipleOf10(distanceResponse.getDistance());
         if (distance > Constants.KM) {
-            masterEntity = getTripData();
+            masterEntity = getTripData(distanceRequest);
             setResponse(destinationResponse, masterEntity, distanceRequest);
             return destinationResponse;
         }
-        DestinationEntity destinationEntity = destinationRepository.getAmountData(distance);
-        destinationResponse.setAmount(destinationEntity.getAmount());
+        DestinationEntity destinationEntity = destinationRepository.getAmountData(distance, distanceRequest.getVehicleNumber());
+        destinationResponse.setTotalAmount(destinationEntity.getAmount() * 2);
+        destinationResponse.setAdvanceAmt(destinationResponse.getTotalAmount() * 0.2);
+        destinationResponse.setRemainingAmt(destinationResponse.getTotalAmount() - destinationResponse.getAdvanceAmt());
         destinationResponse.setSource(distanceRequest.getSource());
         destinationResponse.setDestination(distanceRequest.getDestination());
         return destinationResponse;
@@ -56,22 +58,30 @@ public class DestinationServiceImpl implements DestinationService {
     }
 
     private void setResponse(DestinationResponse destinationResponse, MasterEntity masterEntity, DistanceRequest distanceRequest) {
-        destinationResponse.setSource(distanceRequest.getSource());
-        destinationResponse.setDestination(masterEntity.getDestination());
-        destinationResponse.setAmount(masterEntity.getAdvanceAmount());
+        if (distanceRequest.getMultipleDestination()) {
+            destinationResponse.setSource(distanceRequest.getSource());
+            destinationResponse.setAdvanceAmt(masterEntity.getAmount());
+            destinationResponse.setAmtPerKM(10.00);
+        } else {
+            destinationResponse.setSource(distanceRequest.getSource());
+            destinationResponse.setDestination(masterEntity.getDestination());
+            destinationResponse.setTotalAmount(masterEntity.getAmount());
+            destinationResponse.setAdvanceAmt(masterEntity.getAmount() * 0.2);
+            destinationResponse.setRemainingAmt(masterEntity.getAmount() - masterEntity.getAmount() * 0.2);
+        }
     }
 
     private MasterEntity getSourceAndDestination(DistanceRequest distanceRequest) {
-        return masterEntityRepo.findBySourceAndDestination(distanceRequest.getSource(), distanceRequest.getDestination());
+        return masterEntityRepo.findBySourceAndDestination(distanceRequest.getSource(), distanceRequest.getDestination(), distanceRequest.getVehicleNumber());
     }
 
-    private MasterEntity getTripData() {
-        return masterEntityRepo.findTripAmount(Constants.TRIP);
+    private MasterEntity getTripData(DistanceRequest distanceRequest) {
+        return masterEntityRepo.findTripAmount(Constants.TRIP, distanceRequest.getVehicleNumber());
     }
 
     private MasterEntity getTripOrSourceAndDestination(DistanceRequest distanceRequest) {
         if (Boolean.TRUE.equals(distanceRequest.getMultipleDestination())) {
-            return getTripData();
+            return getTripData(distanceRequest);
         } else {
             return getSourceAndDestination(distanceRequest);
         }

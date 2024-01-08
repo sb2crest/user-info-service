@@ -25,6 +25,9 @@ public class MasterEntity implements Serializable {
     @Column(name = "destination")
     private String destination;
 
-    @Column(name = "advance_amt")
-    private Double advanceAmount;
+    @Column(name = "amt")
+    private Double amount;
+
+    @Column(name = "vehicle_number")
+    private String vehicleNumber;
 }
