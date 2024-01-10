@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class BookingController {
     }
 
     @PostMapping("/getVehicleAvailability")
-    public ResponseEntity<List<VehicleDto>> getVehicleAvailability(@RequestBody VehiclesAvailable vehiclesAvailable) {
+    public ResponseEntity<List<VehicleDto>> getVehicleAvailability(@RequestBody VehiclesAvailable vehiclesAvailable) throws Exception {
         return new ResponseEntity<>(bookingService.getVehicleAvailability(vehiclesAvailable), HttpStatus.OK);
     }
 

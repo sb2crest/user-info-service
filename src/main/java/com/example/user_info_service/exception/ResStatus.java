@@ -17,7 +17,9 @@ public enum ResStatus {
     INVALID_NUMBER("4001", "invalid vehicle number"),
     DUPLICATE_NUMBER("4002", "vehicle number already exist"),
     VEHICLE_NUMBER("4003", "please enter vehicle number"),
-    PAYMENT_DETAILS_NOT_FOUND("5010","Payment Details not found");
+    PAYMENT_DETAILS_NOT_FOUND("5010","Payment Details not found"),
+    VEHICLE_NOT_AVAILABLE("5011","Vehicle Not Available for the date specified"),
+    ;
 
     private final String code;
     private final String desc;

@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -49,7 +50,7 @@ class DestinationControllerTest {
 
     @Test
     void getAmountDetails() throws Exception {
-        when(destinationService.getAmountDetails(Mockito.any())).thenReturn(new DestinationResponse());
+        when(destinationService.getAmountDetails(Mockito.any())).thenReturn(List.of(new DestinationResponse()));
         mvc.perform(post("/getEventType").content(TestUtil.convertObjectToJsonBytes(new DestinationRequest()))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());

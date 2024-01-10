@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -28,60 +30,85 @@ public class DestinationServiceImpl implements DestinationService {
     private DistanceService distanceService;
 
     @Override
-    public DestinationResponse getAmountDetails(DistanceRequest distanceRequest) throws IOException {
-        DestinationResponse destinationResponse = new DestinationResponse();
-        MasterEntity masterEntity = getTripOrSourceAndDestination(distanceRequest);
+    public List<DestinationResponse>  getAmountDetails(DistanceRequest distanceRequest) throws IOException {
+        List<DestinationResponse> destinationResponses = new ArrayList<>();
+        List<MasterEntity> masterEntities = getTripOrSourceAndDestination(distanceRequest);
+        Double distance = 0.00;
+        if(!distanceRequest.getMultipleDestination()) {
+            DistanceResponse distanceResponse = distanceService.calculateDistance(distanceRequest);
+            log.info("distance {}", distanceResponse.getDistance());
+            distance = roundToNearestMultipleOf10(distanceResponse.getDistance());
+        }
+        if (masterEntities != null && !masterEntities.isEmpty()) {
+            setResponse(destinationResponses, masterEntities, distanceRequest);
+        }
+        if (masterEntities.isEmpty() && distance > Constants.KM) {
+            masterEntities = getTripAmount(distanceRequest);
+            setResponse(destinationResponses, masterEntities, distanceRequest);
+        }
+        if (destinationResponses.isEmpty()) {
+            List<DestinationEntity> destinationEntities = destinationRepository.getAmountData(distance, distanceRequest.getVehicleNumbers());
+            getEventDetails(destinationEntities, destinationResponses, distanceRequest);
+        }
 
-        if (masterEntity != null) {
-            setResponse(destinationResponse, masterEntity, distanceRequest);
-            return destinationResponse;
+        return destinationResponses;
+    }
+
+    private void getEventDetails(List<DestinationEntity> destinationEntities, List<DestinationResponse> destinationResponses, DistanceRequest distanceRequest) {
+        for (DestinationEntity destinationEntity : destinationEntities) {
+            DestinationResponse destinationResponse = new DestinationResponse();
+            destinationResponse.setTotalAmount(destinationEntity.getAmount());
+            destinationResponse.setAdvanceAmt(destinationResponse.getTotalAmount() * 0.2);
+            destinationResponse.setRemainingAmt(destinationResponse.getTotalAmount() - destinationResponse.getAdvanceAmt());
+            destinationResponse.setSource(distanceRequest.getSource());
+            destinationResponse.setDestination(distanceRequest.getDestination());
+            destinationResponse.setVehicleNumber(destinationEntity.getVehicleNumber());
+
+            destinationResponses.add(destinationResponse);
         }
-        DistanceResponse distanceResponse = distanceService.calculateDistance(distanceRequest);
-        log.info("distance {}", distanceResponse.getDistance());
-        double distance = roundToNearestMultipleOf10(distanceResponse.getDistance());
-        if (distance > Constants.KM) {
-            masterEntity = getTripData(distanceRequest);
-            setResponse(destinationResponse, masterEntity, distanceRequest);
-            return destinationResponse;
-        }
-        DestinationEntity destinationEntity = destinationRepository.getAmountData(distance, distanceRequest.getVehicleNumber());
-        destinationResponse.setTotalAmount(destinationEntity.getAmount() * 2);
-        destinationResponse.setAdvanceAmt(destinationResponse.getTotalAmount() * 0.2);
-        destinationResponse.setRemainingAmt(destinationResponse.getTotalAmount() - destinationResponse.getAdvanceAmt());
-        destinationResponse.setSource(distanceRequest.getSource());
-        destinationResponse.setDestination(distanceRequest.getDestination());
-        return destinationResponse;
     }
 
     private double roundToNearestMultipleOf10(double value) {
         return Math.round(value / 10.0) * 10.0;
     }
 
-    private void setResponse(DestinationResponse destinationResponse, MasterEntity masterEntity, DistanceRequest distanceRequest) {
-        if (distanceRequest.getMultipleDestination()) {
-            destinationResponse.setSource(distanceRequest.getSource());
-            destinationResponse.setAdvanceAmt(masterEntity.getAmount());
-            destinationResponse.setAmtPerKM(10.00);
-        } else {
-            destinationResponse.setSource(distanceRequest.getSource());
-            destinationResponse.setDestination(masterEntity.getDestination());
-            destinationResponse.setTotalAmount(masterEntity.getAmount());
-            destinationResponse.setAdvanceAmt(masterEntity.getAmount() * 0.2);
-            destinationResponse.setRemainingAmt(masterEntity.getAmount() - masterEntity.getAmount() * 0.2);
+    private void setResponse(List<DestinationResponse> destinationResponses, List<MasterEntity> masterEntities, DistanceRequest distanceRequest) {
+        for (MasterEntity masterEntity : masterEntities) {
+            DestinationResponse destinationResponse = new DestinationResponse();
+            if (distanceRequest.getMultipleDestination()) {
+                destinationResponse.setSource(distanceRequest.getSource());
+                destinationResponse.setAdvanceAmt(masterEntity.getAmount());
+                destinationResponse.setAmtPerKM(10.00);
+                destinationResponse.setVehicleNumber(masterEntity.getVehicleNumber());
+            } else {
+                destinationResponse.setTotalAmount(masterEntity.getAmount());
+                destinationResponse.setAdvanceAmt(destinationResponse.getTotalAmount() * 0.2);
+                destinationResponse.setRemainingAmt(destinationResponse.getTotalAmount() - destinationResponse.getAdvanceAmt());
+                destinationResponse.setSource(distanceRequest.getSource());
+                destinationResponse.setDestination(distanceRequest.getDestination());
+                destinationResponse.setVehicleNumber(masterEntity.getVehicleNumber());
+            }
+            destinationResponses.add(destinationResponse);
         }
     }
 
-    private MasterEntity getSourceAndDestination(DistanceRequest distanceRequest) {
-        return masterEntityRepo.findBySourceAndDestination(distanceRequest.getSource(), distanceRequest.getDestination(), distanceRequest.getVehicleNumber());
+    private List<MasterEntity> getSourceAndDestination(DistanceRequest distanceRequest) {
+        List<String> vehicleNumbers = distanceRequest.getVehicleNumbers();
+        return masterEntityRepo.findBySourceAndDestination(
+                distanceRequest.getSource(),
+                distanceRequest.getDestination(),
+                vehicleNumbers
+        );
     }
 
-    private MasterEntity getTripData(DistanceRequest distanceRequest) {
-        return masterEntityRepo.findTripAmount(Constants.TRIP, distanceRequest.getVehicleNumber());
+    private List<MasterEntity> getTripAmount(DistanceRequest distanceRequest) {
+        List<String> vehicleNumbers = distanceRequest.getVehicleNumbers();
+        return masterEntityRepo.findTripAmount(Constants.TRIP, vehicleNumbers);
     }
 
-    private MasterEntity getTripOrSourceAndDestination(DistanceRequest distanceRequest) {
+    private List<MasterEntity> getTripOrSourceAndDestination(DistanceRequest distanceRequest) {
         if (Boolean.TRUE.equals(distanceRequest.getMultipleDestination())) {
-            return getTripData(distanceRequest);
+            return getTripAmount(distanceRequest);
         } else {
             return getSourceAndDestination(distanceRequest);
         }

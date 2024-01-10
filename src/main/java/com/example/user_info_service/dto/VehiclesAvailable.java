@@ -13,4 +13,5 @@ public class VehiclesAvailable {
 
     private String filter;
 
+    private DistanceRequest distanceRequest;
 }

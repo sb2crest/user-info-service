@@ -15,6 +15,8 @@ import org.mockito.Mockito;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -68,13 +70,15 @@ class DestinationServiceImplTest {
 
     }
 
-    private DestinationEntity getDestinationEntity() {
+    private List<DestinationEntity> getDestinationEntity() {
+        List<DestinationEntity> destinationEntityList = new ArrayList<>();
         DestinationEntity destinationEntity = new DestinationEntity();
         destinationEntity.setId(1L);
         destinationEntity.setDistance(258.97);
         destinationEntity.setAmount(2568.98);
         destinationEntity.setVehicleNumber("KA01HJ1234");
-        return destinationEntity;
+        destinationEntityList.add(destinationEntity);
+        return destinationEntityList;
 
     }
 
@@ -85,14 +89,16 @@ class DestinationServiceImplTest {
         return distanceResponse;
     }
 
-    private MasterEntity getMasterEntity() {
+    private List<MasterEntity> getMasterEntity() {
         MasterEntity masterEntity = new MasterEntity();
+        List<MasterEntity> masterEntityList = new ArrayList<>();
         masterEntity.setId(1L);
         masterEntity.setSource("AND");
         masterEntity.setDestination("ODF");
         masterEntity.setAmount(1234.90);
         masterEntity.setVehicleNumber("KA01HJ1234");
-        return masterEntity;
+        masterEntityList.add(masterEntity);
+        return masterEntityList;
     }
 
     private DistanceRequest getDistanceRequest() {

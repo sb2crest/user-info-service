@@ -20,4 +20,6 @@ public class DestinationResponse {
     private Double remainingAmt;
 
     private Double amtPerKM;
+
+    private String vehicleNumber;
 }

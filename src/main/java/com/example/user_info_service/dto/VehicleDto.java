@@ -32,4 +32,16 @@ public class VehicleDto {
 
     private String emergencyNumber;
 
+    private Double totalAmount;
+
+    private Double advanceAmt;
+
+    private Double remainingAmt;
+
+    private Double amtPerKM;
+
+    private String source;
+
+    private String destination;
+
 }

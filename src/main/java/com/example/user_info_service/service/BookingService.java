@@ -2,6 +2,7 @@ package com.example.user_info_service.service;
 
 import com.example.user_info_service.dto.*;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 

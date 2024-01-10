@@ -24,6 +24,8 @@ import java.text.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -46,6 +48,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Autowired
     private JavaMailSender javaMailSender;
+
+    @Autowired
+    private DestinationServiceImpl destinationServiceImpl;
 
     @Value("${mail.to.username}")
     private String toEmailAddress;
@@ -154,10 +159,9 @@ public class BookingServiceImpl implements BookingService {
             getUser(bookingEntity, bookingDetails);
             getSlot(bookingEntity.getBookingId(), bookingDetails);
             getVehicleDetails(bookingDetails, bookingEntity.getVehicleNumber());
-            if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.ENQUIRY.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
+            if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.ENQUIRY.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
                 enquiryAndBookedList.add(bookingDetails);
-            }
-            else {
+            } else {
                 historyList.add(bookingDetails);
             }
         }
@@ -171,14 +175,14 @@ public class BookingServiceImpl implements BookingService {
         bookingDetails.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
         bookingDetails.setBookingDate(bookingEntity.getBookingDate());
         bookingDetails.setTotalAmt(bookingEntity.getTotalAmount());
-        if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
+        if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
             bookingDetails.setAdvancedPaid(getAmount(bookingEntity));
             bookingDetails.setRemainingAmt(bookingEntity.getTotalAmount() - bookingEntity.getAdvanceAmountPaid());
         }
     }
 
-    Double getAmount(BookingEntity bookingEntity){
-        if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
+    Double getAmount(BookingEntity bookingEntity) {
+        if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
             List<PaymentEntity> paymentEntities = paymentRepository.findByBookingId(bookingEntity.getBookingId());
             validatePaymentEntityList(paymentEntities);
             return paymentEntities.stream().mapToDouble(PaymentEntity::getAmount).sum();
@@ -196,11 +200,10 @@ public class BookingServiceImpl implements BookingService {
         for (BookingEntity bookingEntity : bookingEntityList) {
             VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(bookingEntity.getVehicleNumber());
             validateVehicleEntity(vehicleEntity);
-            BookingInfo bookingInfo = getBookingInfo(vehicleEntity,bookingEntity);
-            if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.ENQUIRY.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())){
+            BookingInfo bookingInfo = getBookingInfo(vehicleEntity, bookingEntity);
+            if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.ENQUIRY.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
                 enquiryAndBookedList.add(bookingInfo);
-            }
-            else {
+            } else {
                 historyList.add(bookingInfo);
             }
         }
@@ -215,7 +218,7 @@ public class BookingServiceImpl implements BookingService {
         bookingInfo.setToDate(localDateFormat.format(bookingEntity.getToDate()));
         bookingInfo.setFromDate(localDateFormat.format(bookingEntity.getFromDate()));
         bookingInfo.setBookingDate(localDateFormatForBookingDate.format(bookingEntity.getBookingDate()));
-        if(BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
+        if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
             bookingInfo.setDriverName(vehicleEntity.getDriverName());
             bookingInfo.setDriverNumber(vehicleEntity.getDriverNumber());
             bookingInfo.setAlternateNumber(vehicleEntity.getAlternateNumber());
@@ -324,27 +327,94 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<VehicleDto> getVehicleAvailability(VehiclesAvailable vehiclesAvailable) {
-        List<VehicleDto> vehicleDtos = new ArrayList<>();
-        List<String> filterDetails = CommonFunction.getFilterDetails(vehiclesAvailable.getFilter());
-        LocalDate fromDate = vehiclesAvailable.getFromDate() == null ? LocalDate.now() : LocalDate.parse(vehiclesAvailable.getFromDate(), localDateFormat);
-        LocalDate toDate = vehiclesAvailable.getToDate() == null ? fromDate.plusDays(1).plusWeeks(2) : LocalDate.parse(vehiclesAvailable.getToDate(), localDateFormat);
-        List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(filterDetails,toDate, fromDate);
-        getVehiclePojo(vehicleDtos, vehicleEntities);
-        return vehicleDtos;
+        try {
+            List<VehicleDto> vehicleDtos = new ArrayList<>();
+            List<String> filterDetails = CommonFunction.getFilterDetails(vehiclesAvailable.getFilter());
+            LocalDate fromDate = vehiclesAvailable.getFromDate() == null ? LocalDate.now() : LocalDate.parse(vehiclesAvailable.getFromDate(), localDateFormat);
+            LocalDate toDate = vehiclesAvailable.getToDate() == null ? fromDate.plusDays(1).plusWeeks(2) : LocalDate.parse(vehiclesAvailable.getToDate(), localDateFormat);
+            List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(filterDetails, toDate, fromDate);
 
+            if (vehicleEntities == null || vehicleEntities.isEmpty()) {
+                throw new BookingException(ResStatus.VEHICLE_NOT_AVAILABLE);
+            }
+            List<String> uniqueVehicleNumbers = vehicleEntities.stream()
+                    .map(VehicleEntity::getVehicleNumber)
+                    .collect(Collectors.toList());
+
+            DistanceRequest distanceRequest = getDistanceRequestDetails(vehiclesAvailable, uniqueVehicleNumbers);
+            try {
+                List<DestinationResponse> destinationResponses = destinationServiceImpl.getAmountDetails(distanceRequest);
+
+                Map<String, DestinationResponse> destinationResponseMap = destinationResponses.stream()
+                        .filter(response -> response.getVehicleNumber() != null && !response.getVehicleNumber().isEmpty())
+                        .collect(Collectors.toMap(DestinationResponse::getVehicleNumber, Function.identity()));
+
+                for (VehicleEntity vehicleEntity : vehicleEntities) {
+                    String vehicleNumber = vehicleEntity.getVehicleNumber();
+                    DestinationResponse destinationResponse = destinationResponseMap.get(vehicleNumber);
+
+                    if (destinationResponse != null) {
+                        VehicleDto vehicleDto = getVehiclePojo(destinationResponse, vehicleEntity);
+                        vehicleDtos.add(vehicleDto);
+                    }
+                }
+            } catch (Exception e) {
+                throw new NullPointerException(e.getMessage());
+            }
+            return vehicleDtos;
+        } catch (BookingException bookingException) {
+            throw new BookingException(ResStatus.VEHICLE_NOT_AVAILABLE);
+        }
     }
 
-    private void getVehiclePojo(List<VehicleDto> vehicleDtos, List<VehicleEntity> vehicleEntities) {
-        for (VehicleEntity vehicleEntity : vehicleEntities) {
-            VehicleDto vehicleDto = new VehicleDto();
+    private VehicleDto getVehiclePojo(DestinationResponse destinationResponses, VehicleEntity vehicleEntity) {
+        VehicleDto vehicleDto = new VehicleDto();
+        if (vehicleEntity != null) {
             vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
             vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
             vehicleDto.setS3ImageUrl(vehicleEntity.getS3ImageUrl());
-            getVehicleFilterDetails(vehicleDto, vehicleEntity);
-
-            vehicleDtos.add(vehicleDto);
+            vehicleDto.setDriverName(vehicleEntity.getDriverName());
+            vehicleDto.setDriverNumber(vehicleEntity.getDriverNumber());
+            vehicleDto.setAlternateNumber(vehicleEntity.getAlternateNumber());
+            vehicleDto.setEmergencyNumber(vehicleEntity.getEmergencyNumber());
+            vehicleDto.setSource(destinationResponses.getSource());
+            vehicleDto.setDestination(destinationResponses.getDestination());
+            vehicleDto.setTotalAmount(destinationResponses.getTotalAmount());
+            vehicleDto.setAdvanceAmt(destinationResponses.getAdvanceAmt());
+            vehicleDto.setRemainingAmt(destinationResponses.getRemainingAmt());
+            vehicleDto.setAmtPerKM(destinationResponses.getAmtPerKM());
         }
+        getVehicleFilterDetails(vehicleDto, vehicleEntity);
+        return vehicleDto;
     }
+
+    private DistanceRequest getDistanceRequestDetails(VehiclesAvailable vehiclesAvailable, List<String> vehicleNumbers) {
+        DistanceRequest distanceRequest = new DistanceRequest();
+        if (vehiclesAvailable != null) {
+            distanceRequest.setSource(vehiclesAvailable.getDistanceRequest().getSource());
+            distanceRequest.setDestination(vehiclesAvailable.getDistanceRequest().getDestination());
+            distanceRequest.setSourceLatitude(vehiclesAvailable.getDistanceRequest().getSourceLatitude());
+            distanceRequest.setSourceLongitude(vehiclesAvailable.getDistanceRequest().getSourceLongitude());
+            distanceRequest.setDestinationLatitude(vehiclesAvailable.getDistanceRequest().getDestinationLatitude());
+            distanceRequest.setDestinationLongitude(vehiclesAvailable.getDistanceRequest().getDestinationLongitude());
+            distanceRequest.setMultipleDestination(vehiclesAvailable.getDistanceRequest().getMultipleDestination());
+            distanceRequest.setVehicleNumbers(vehicleNumbers);
+        }
+        return distanceRequest;
+    }
+
+
+//    private void getVehiclePojo(List<VehicleDto> vehicleDtos, List<VehicleEntity> vehicleEntities) {
+//        for (VehicleEntity vehicleEntity : vehicleEntities) {
+//            VehicleDto vehicleDto = new VehicleDto();
+//            vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
+//            vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
+//            vehicleDto.setS3ImageUrl(vehicleEntity.getS3ImageUrl());
+//            getVehicleFilterDetails(vehicleDto, vehicleEntity);
+//
+//            vehicleDtos.add(vehicleDto);
+//        }
+//    }
 
     private List<LocalDate> generateInBetweenDates(LocalDate startDate, LocalDate endDate) {
         List<LocalDate> inBetweenDates = new ArrayList<>();
@@ -425,7 +495,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void getVehicleFilterDetails(VehicleDto vehicleDto, VehicleEntity vehicleEntity) {
-        if(vehicleEntity.getFilter() != null) {
+        if (vehicleEntity.getFilter() != null) {
             String[] filterDetails = CommonFunction.splitUsingSlash(vehicleEntity.getFilter());
             vehicleDto.setVehicleAC(ACType.getDescByCode(filterDetails[0]));
             vehicleDto.setSleeper(SleeperType.getDescByCode(filterDetails[1]));

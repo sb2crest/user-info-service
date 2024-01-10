@@ -1,6 +1,7 @@
 package com.example.user_info_service.service;
 
 import com.example.user_info_service.entity.*;
+import com.example.user_info_service.exception.ResStatus;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.dto.*;
@@ -15,9 +16,11 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
+import java.io.IOException;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,6 +49,9 @@ class BookingServiceImplTest {
 
     @Mock
     PaymentRepository paymentRepository;
+
+    @Mock
+    private DestinationServiceImpl destinationServiceImpl;
 
     @BeforeEach
     public void setUp() {
@@ -258,21 +264,49 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getVehicleAvailabilityTest() {
+    void getVehicleAvailabilityTest() throws IOException {
         List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
+        List<DestinationResponse> destinationResponse = getDestinationResponse();
         when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),any())).thenReturn(vehicleEntities);
+        when(destinationServiceImpl.getAmountDetails(any())).thenReturn(destinationResponse);
         assertEquals(12,bookingService.getVehicleAvailability(getVehiclesAvailable()).get(0).getSeatCapacity());
 
     }
 
     @Test
-    void getVehicleAvailabilityTestWhenDatesNotGiven() {
+    void getVehicleAvailabilityTestWhenDestinationResponseIsNull() throws IOException {
+        List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
+        VehiclesAvailable vehiclesAvailable = getVehiclesAvailable();
+        when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),any())).thenReturn(vehicleEntities);
+        when(destinationServiceImpl.getAmountDetails(any())).thenReturn(null);
+        assertThrows(Exception.class,() -> bookingService.getVehicleAvailability(vehiclesAvailable));
+    }
+
+    @Test
+    void getVehicleAvailabilityTestWhenVehicleEntitiesIsNull() throws IOException {
+        VehiclesAvailable vehiclesAvailable = getVehiclesAvailable();
+        when(vehicleInfoRepo.getAvailableVehicle(anyList(), any(), any())).thenReturn(null);
+        assertThrows(BookingException.class, () -> bookingService.getVehicleAvailability(vehiclesAvailable));
+    }
+
+    @Test
+    void getVehicleAvailabilityTestWhenVehicleEntitiesIsEmpty() throws IOException {
+
+        VehiclesAvailable vehiclesAvailable = getVehiclesAvailable();
+        when(vehicleInfoRepo.getAvailableVehicle(anyList(), any(), any())).thenReturn(Collections.emptyList());
+        assertThrows(BookingException.class, () -> bookingService.getVehicleAvailability(vehiclesAvailable));
+    }
+
+    @Test
+    void getVehicleAvailabilityTestWhenDatesNotGiven() throws IOException {
         VehiclesAvailable vehiclesAvailable = getVehiclesAvailable();
         vehiclesAvailable.setFromDate(null);
         vehiclesAvailable.setToDate(null);
         List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
         vehicleEntities.get(0).setFilter(null);
+        List<DestinationResponse> destinationResponse = getDestinationResponse();
         when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(vehicleEntities);
+        when(destinationServiceImpl.getAmountDetails(any())).thenReturn(destinationResponse);
         assertEquals(12,bookingService.getVehicleAvailability(vehiclesAvailable).get(0).getSeatCapacity());
 
     }
@@ -325,10 +359,25 @@ class BookingServiceImplTest {
     }
 
     VehiclesAvailable getVehiclesAvailable() {
+
+        List<String> vehicleNumbersList = new ArrayList<>();
+        vehicleNumbersList.add("KA01HJ1234");
+
+        DistanceRequest distanceRequest = new DistanceRequest();
+        distanceRequest.setSource("ABCV");
+        distanceRequest.setDestination("bvcs");
+        distanceRequest.setVehicleNumbers(vehicleNumbersList);
+        distanceRequest.setSourceLatitude(17.827729);
+        distanceRequest.setSourceLongitude(77.3762781);
+        distanceRequest.setDestinationLatitude(17.647389);
+        distanceRequest.setDestinationLongitude(87.737829);
+        distanceRequest.setMultipleDestination(false);
+
         VehiclesAvailable vehiclesAvailable = new VehiclesAvailable();
         vehiclesAvailable.setFromDate("12-11-2023");
         vehiclesAvailable.setToDate("15-11-2023");
         vehiclesAvailable.setFilter("AC/FS");
+        vehiclesAvailable.setDistanceRequest(distanceRequest);
         return vehiclesAvailable;
     }
 
@@ -466,5 +515,18 @@ class BookingServiceImplTest {
 
         return userData;
 
+    }
+    private List<DestinationResponse> getDestinationResponse(){
+        DestinationResponse destinationResponse = new DestinationResponse();
+        List<DestinationResponse> destinationResponseList = new ArrayList<>();
+        destinationResponse.setDestination("wbch");
+        destinationResponse.setAdvanceAmt(2000.0000);
+        destinationResponse.setRemainingAmt(18000.0000);
+        destinationResponse.setSource("wdcbnj");
+        destinationResponse.setTotalAmount(20000.0000);
+        destinationResponse.setAmtPerKM(23.000);
+        destinationResponse.setVehicleNumber("1234");
+        destinationResponseList.add(destinationResponse);
+        return destinationResponseList;
     }
 }
