@@ -389,18 +389,23 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private DistanceRequest getDistanceRequestDetails(VehiclesAvailable vehiclesAvailable, List<String> vehicleNumbers) {
-        DistanceRequest distanceRequest = new DistanceRequest();
-        if (vehiclesAvailable != null) {
-            distanceRequest.setSource(vehiclesAvailable.getDistanceRequest().getSource());
-            distanceRequest.setDestination(vehiclesAvailable.getDistanceRequest().getDestination());
-            distanceRequest.setSourceLatitude(vehiclesAvailable.getDistanceRequest().getSourceLatitude());
-            distanceRequest.setSourceLongitude(vehiclesAvailable.getDistanceRequest().getSourceLongitude());
-            distanceRequest.setDestinationLatitude(vehiclesAvailable.getDistanceRequest().getDestinationLatitude());
-            distanceRequest.setDestinationLongitude(vehiclesAvailable.getDistanceRequest().getDestinationLongitude());
-            distanceRequest.setMultipleDestination(vehiclesAvailable.getDistanceRequest().getMultipleDestination());
-            distanceRequest.setVehicleNumbers(vehicleNumbers);
+        try {
+            if (vehiclesAvailable != null) {
+                throw new BookingException(ResStatus.VEHICLE_NOT_FOUND);
+            }
+            return DistanceRequest.builder()
+                    .source(vehiclesAvailable.getDistanceRequest().getSource())
+                    .destination(vehiclesAvailable.getDistanceRequest().getDestination())
+                    .sourceLatitude(vehiclesAvailable.getDistanceRequest().getSourceLatitude())
+                    .sourceLongitude(vehiclesAvailable.getDistanceRequest().getSourceLongitude())
+                    .destinationLatitude(vehiclesAvailable.getDistanceRequest().getDestinationLatitude())
+                    .destinationLongitude(vehiclesAvailable.getDistanceRequest().getDestinationLongitude())
+                    .multipleDestination(vehiclesAvailable.getDistanceRequest().getMultipleDestination())
+                    .vehicleNumbers(vehicleNumbers)
+                    .build();
+        }catch (BookingException bookingException){
+            throw new BookingException(ResStatus.VEHICLE_NOT_FOUND);
         }
-        return distanceRequest;
     }
 
 
