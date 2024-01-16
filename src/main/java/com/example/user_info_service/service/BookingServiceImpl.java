@@ -332,7 +332,7 @@ public class BookingServiceImpl implements BookingService {
             List<String> filterDetails = CommonFunction.getFilterDetails(vehiclesAvailable.getFilter());
             LocalDate fromDate = LocalDate.parse(vehiclesAvailable.getFromDate(), localDateFormat);
             LocalDate toDate = LocalDate.parse(vehiclesAvailable.getToDate(), localDateFormat);
-            List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(filterDetails, toDate, fromDate);
+            List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(filterDetails, fromDate, toDate);
 
             if (vehicleEntities == null || vehicleEntities.isEmpty()) {
                 throw new BookingException(ResStatus.VEHICLE_NOT_AVAILABLE);
@@ -369,52 +369,35 @@ public class BookingServiceImpl implements BookingService {
 
     private VehicleDto getVehiclePojo(DestinationResponse destinationResponses, VehicleEntity vehicleEntity) {
         VehicleDto vehicleDto = new VehicleDto();
-        if (vehicleEntity != null) {
-            vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
-            vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
-            vehicleDto.setS3ImageUrl(vehicleEntity.getS3ImageUrl());
-            vehicleDto.setDriverName(vehicleEntity.getDriverName());
-            vehicleDto.setDriverNumber(vehicleEntity.getDriverNumber());
-            vehicleDto.setAlternateNumber(vehicleEntity.getAlternateNumber());
-            vehicleDto.setEmergencyNumber(vehicleEntity.getEmergencyNumber());
-            vehicleDto.setSource(destinationResponses.getSource());
-            vehicleDto.setDestination(destinationResponses.getDestination());
-            vehicleDto.setTotalAmount(destinationResponses.getTotalAmount());
-            vehicleDto.setAdvanceAmt(destinationResponses.getAdvanceAmt());
-            vehicleDto.setRemainingAmt(destinationResponses.getRemainingAmt());
-            vehicleDto.setAmtPerKM(destinationResponses.getAmtPerKM());
-        }
+        vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
+        vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
+        vehicleDto.setS3ImageUrl(vehicleEntity.getS3ImageUrl());
+        vehicleDto.setDriverName(vehicleEntity.getDriverName());
+        vehicleDto.setDriverNumber(vehicleEntity.getDriverNumber());
+        vehicleDto.setAlternateNumber(vehicleEntity.getAlternateNumber());
+        vehicleDto.setEmergencyNumber(vehicleEntity.getEmergencyNumber());
+        vehicleDto.setSource(destinationResponses.getSource());
+        vehicleDto.setDestination(destinationResponses.getDestination());
+        vehicleDto.setTotalAmount(destinationResponses.getTotalAmount());
+        vehicleDto.setAdvanceAmt(destinationResponses.getAdvanceAmt());
+        vehicleDto.setRemainingAmt(destinationResponses.getRemainingAmt());
+        vehicleDto.setAmtPerKM(destinationResponses.getAmtPerKM());
         getVehicleFilterDetails(vehicleDto, vehicleEntity);
         return vehicleDto;
     }
 
     private DistanceRequest getDistanceRequestDetails(VehiclesAvailable vehiclesAvailable, List<String> vehicleNumbers) {
         DistanceRequest distanceRequest = new DistanceRequest();
-        if (vehiclesAvailable != null) {
-            distanceRequest.setSource(vehiclesAvailable.getDistanceRequest().getSource());
-            distanceRequest.setDestination(vehiclesAvailable.getDistanceRequest().getDestination());
-            distanceRequest.setSourceLatitude(vehiclesAvailable.getDistanceRequest().getSourceLatitude());
-            distanceRequest.setSourceLongitude(vehiclesAvailable.getDistanceRequest().getSourceLongitude());
-            distanceRequest.setDestinationLatitude(vehiclesAvailable.getDistanceRequest().getDestinationLatitude());
-            distanceRequest.setDestinationLongitude(vehiclesAvailable.getDistanceRequest().getDestinationLongitude());
-            distanceRequest.setMultipleDestination(vehiclesAvailable.getDistanceRequest().getMultipleDestination());
-            distanceRequest.setVehicleNumbers(vehicleNumbers);
-        }
+        distanceRequest.setSource(vehiclesAvailable.getDistanceRequest().getSource());
+        distanceRequest.setDestination(vehiclesAvailable.getDistanceRequest().getDestination());
+        distanceRequest.setSourceLatitude(vehiclesAvailable.getDistanceRequest().getSourceLatitude());
+        distanceRequest.setSourceLongitude(vehiclesAvailable.getDistanceRequest().getSourceLongitude());
+        distanceRequest.setDestinationLatitude(vehiclesAvailable.getDistanceRequest().getDestinationLatitude());
+        distanceRequest.setDestinationLongitude(vehiclesAvailable.getDistanceRequest().getDestinationLongitude());
+        distanceRequest.setMultipleDestination(vehiclesAvailable.getDistanceRequest().getMultipleDestination());
+        distanceRequest.setVehicleNumbers(vehicleNumbers);
         return distanceRequest;
     }
-
-
-//    private void getVehiclePojo(List<VehicleDto> vehicleDtos, List<VehicleEntity> vehicleEntities) {
-//        for (VehicleEntity vehicleEntity : vehicleEntities) {
-//            VehicleDto vehicleDto = new VehicleDto();
-//            vehicleDto.setSeatCapacity(vehicleEntity.getSeatCapacity());
-//            vehicleDto.setVehicleNumber(vehicleEntity.getVehicleNumber());
-//            vehicleDto.setS3ImageUrl(vehicleEntity.getS3ImageUrl());
-//            getVehicleFilterDetails(vehicleDto, vehicleEntity);
-//
-//            vehicleDtos.add(vehicleDto);
-//        }
-//    }
 
     private List<LocalDate> generateInBetweenDates(LocalDate startDate, LocalDate endDate) {
         List<LocalDate> inBetweenDates = new ArrayList<>();

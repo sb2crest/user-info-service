@@ -60,11 +60,11 @@ public class PaymentServiceImpl implements PaymentService {
         this.razorPayClient = razorPayClient;
     }
 
-        public PaymentServiceImpl(RazorpayClient razorpayClient, String keyID, String keySecret) {
-            this.razorPayClient = razorpayClient;
-            this.keyID = keyID;
-            this.keySecret = keySecret;
-        }
+    public PaymentServiceImpl(RazorpayClient razorpayClient, String keyID, String keySecret) {
+        this.razorPayClient = razorpayClient;
+        this.keyID = keyID;
+        this.keySecret = keySecret;
+    }
 
     @Override
     public PaymentResponse createPayment(PaymentDto paymentDto) {

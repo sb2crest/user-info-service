@@ -273,6 +273,28 @@ class BookingServiceImplTest {
     }
 
     @Test
+    void getVehicleAvailabilityTestWhenVehicleNumberIsNull() throws IOException {
+        List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
+        List<DestinationResponse> destinationResponse = getDestinationResponse();
+        destinationResponse.get(0).setVehicleNumber(null);
+        when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),any())).thenReturn(vehicleEntities);
+        when(destinationServiceImpl.getAmountDetails(any())).thenReturn(destinationResponse);
+        assertNotNull(bookingService.getVehicleAvailability(getVehiclesAvailable()));
+
+    }
+
+    @Test
+    void getVehicleAvailabilityTestWhenVehicleNumberIsEmpty() throws IOException {
+        List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
+        List<DestinationResponse> destinationResponse = getDestinationResponse();
+        destinationResponse.get(0).setVehicleNumber("");
+        when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),any())).thenReturn(vehicleEntities);
+        when(destinationServiceImpl.getAmountDetails(any())).thenReturn(destinationResponse);
+        assertNotNull(bookingService.getVehicleAvailability(getVehiclesAvailable()));
+
+    }
+
+    @Test
     void getVehicleAvailabilityTestWhenDestinationResponseIsNull() throws IOException {
         List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
         VehiclesAvailable vehiclesAvailable = getVehiclesAvailable();

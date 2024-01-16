@@ -18,10 +18,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -31,7 +28,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 public class PaymentServiceImplTest {
@@ -86,6 +83,18 @@ public class PaymentServiceImplTest {
     }
 
     @Test
+    public void testVerifyRazorpaySignature_Success_When_AdvanceAmountPaid() {
+        BookingEntity bookingEntity = getBookingEntity();
+        bookingEntity.setAdvanceAmountPaid(1000.00);
+        when(paymentRepository.findBookingIdByRazorPayOrderId(Mockito.anyString())).thenReturn(getPaymentEntity());
+        when(bookingRepo.getByBookingId(Mockito.any())).thenReturn(bookingEntity);
+        ResponseEntity<BookingResponse> response = paymentService.verifyRazorpaySignature(getPaymentData());
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
     public void testVerifyRazorpaySignature_InvalidSignature() {
         PaymentData paymentData = getPaymentData();
         paymentData.setRazorPaySignature("abc");
@@ -120,7 +129,6 @@ public class PaymentServiceImplTest {
 
     private Order getMockedRazorpayOrder() throws JSONException {
         JSONObject orderRequest = new JSONObject();
-        // Customize this order to match the expected behavior in your test case
         orderRequest.put("amount", 1000);
         orderRequest.put("currency", "INR");
         orderRequest.put("receipt", "payment_receipt_123456");

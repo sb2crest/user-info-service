@@ -39,7 +39,7 @@ public class DestinationServiceImpl implements DestinationService {
             log.info("distance {}", distanceResponse.getDistance());
             distance = roundToNearestMultipleOf10(distanceResponse.getDistance());
         }
-        if (masterEntities != null && !masterEntities.isEmpty()) {
+        if (!masterEntities.isEmpty()) {
             setResponse(destinationResponses, masterEntities, distanceRequest);
         }
         if (masterEntities.isEmpty() && distance > Constants.KM) {
