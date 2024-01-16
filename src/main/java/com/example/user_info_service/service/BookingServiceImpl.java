@@ -330,8 +330,8 @@ public class BookingServiceImpl implements BookingService {
         try {
             List<VehicleDto> vehicleDtos = new ArrayList<>();
             List<String> filterDetails = CommonFunction.getFilterDetails(vehiclesAvailable.getFilter());
-            LocalDate fromDate = vehiclesAvailable.getFromDate() == null ? LocalDate.now() : LocalDate.parse(vehiclesAvailable.getFromDate(), localDateFormat);
-            LocalDate toDate = vehiclesAvailable.getToDate() == null ? fromDate.plusDays(1).plusWeeks(2) : LocalDate.parse(vehiclesAvailable.getToDate(), localDateFormat);
+            LocalDate fromDate = LocalDate.parse(vehiclesAvailable.getFromDate(), localDateFormat);
+            LocalDate toDate = LocalDate.parse(vehiclesAvailable.getToDate(), localDateFormat);
             List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(filterDetails, toDate, fromDate);
 
             if (vehicleEntities == null || vehicleEntities.isEmpty()) {
@@ -389,23 +389,18 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private DistanceRequest getDistanceRequestDetails(VehiclesAvailable vehiclesAvailable, List<String> vehicleNumbers) {
-        try {
-            if (vehiclesAvailable != null) {
-                throw new BookingException(ResStatus.VEHICLE_NOT_FOUND);
-            }
-            return DistanceRequest.builder()
-                    .source(vehiclesAvailable.getDistanceRequest().getSource())
-                    .destination(vehiclesAvailable.getDistanceRequest().getDestination())
-                    .sourceLatitude(vehiclesAvailable.getDistanceRequest().getSourceLatitude())
-                    .sourceLongitude(vehiclesAvailable.getDistanceRequest().getSourceLongitude())
-                    .destinationLatitude(vehiclesAvailable.getDistanceRequest().getDestinationLatitude())
-                    .destinationLongitude(vehiclesAvailable.getDistanceRequest().getDestinationLongitude())
-                    .multipleDestination(vehiclesAvailable.getDistanceRequest().getMultipleDestination())
-                    .vehicleNumbers(vehicleNumbers)
-                    .build();
-        }catch (BookingException bookingException){
-            throw new BookingException(ResStatus.VEHICLE_NOT_FOUND);
+        DistanceRequest distanceRequest = new DistanceRequest();
+        if (vehiclesAvailable != null) {
+            distanceRequest.setSource(vehiclesAvailable.getDistanceRequest().getSource());
+            distanceRequest.setDestination(vehiclesAvailable.getDistanceRequest().getDestination());
+            distanceRequest.setSourceLatitude(vehiclesAvailable.getDistanceRequest().getSourceLatitude());
+            distanceRequest.setSourceLongitude(vehiclesAvailable.getDistanceRequest().getSourceLongitude());
+            distanceRequest.setDestinationLatitude(vehiclesAvailable.getDistanceRequest().getDestinationLatitude());
+            distanceRequest.setDestinationLongitude(vehiclesAvailable.getDistanceRequest().getDestinationLongitude());
+            distanceRequest.setMultipleDestination(vehiclesAvailable.getDistanceRequest().getMultipleDestination());
+            distanceRequest.setVehicleNumbers(vehicleNumbers);
         }
+        return distanceRequest;
     }
 
 

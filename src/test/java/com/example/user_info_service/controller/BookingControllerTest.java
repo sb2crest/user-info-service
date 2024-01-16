@@ -98,7 +98,7 @@ class BookingControllerTest {
 
         mvc.perform(post("/getVehicleAvailability")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(TestUtil.convertObjectToJsonBytes(new VehiclesAvailable())))
+                        .content(TestUtil.convertObjectToJsonBytes(new VehiclesAvailable("12-10-2023","13-10-2023"))))
                 .andExpect(status().isOk());
     }
 

@@ -1,7 +1,6 @@
 package com.example.user_info_service.service;
 
 import com.example.user_info_service.entity.*;
-import com.example.user_info_service.exception.ResStatus;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.dto.*;
@@ -298,10 +297,10 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getVehicleAvailabilityTestWhenDatesNotGiven() throws IOException {
+    void getVehicleAvailabilityTestWhenFilterIsNull() throws IOException {
         VehiclesAvailable vehiclesAvailable = getVehiclesAvailable();
-        vehiclesAvailable.setFromDate(null);
-        vehiclesAvailable.setToDate(null);
+        vehiclesAvailable.setFromDate("12-10-2023");
+        vehiclesAvailable.setToDate("13-10-2023");
         List<VehicleEntity> vehicleEntities = List.of(getVehicleEntity());
         vehicleEntities.get(0).setFilter(null);
         List<DestinationResponse> destinationResponse = getDestinationResponse();
@@ -373,9 +372,7 @@ class BookingServiceImplTest {
         distanceRequest.setDestinationLongitude(87.737829);
         distanceRequest.setMultipleDestination(false);
 
-        VehiclesAvailable vehiclesAvailable = new VehiclesAvailable();
-        vehiclesAvailable.setFromDate("12-11-2023");
-        vehiclesAvailable.setToDate("15-11-2023");
+        VehiclesAvailable vehiclesAvailable = new VehiclesAvailable("12-11-2023","15-11-2023");
         vehiclesAvailable.setFilter("AC/FS");
         vehiclesAvailable.setDistanceRequest(distanceRequest);
         return vehiclesAvailable;
