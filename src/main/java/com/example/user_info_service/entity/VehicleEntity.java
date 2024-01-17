@@ -48,6 +48,10 @@ public class VehicleEntity implements Serializable {
 
     @Column(name = "emergency_contact_number")
     private String emergencyNumber;
+
+    @Column(name = "amt_per_km")
+    private Double amtPerKM;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

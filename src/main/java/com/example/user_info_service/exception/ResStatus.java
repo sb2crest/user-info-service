@@ -19,6 +19,8 @@ public enum ResStatus {
     VEHICLE_NUMBER("4003", "please enter vehicle number"),
     PAYMENT_DETAILS_NOT_FOUND("5010","Payment Details not found"),
     VEHICLE_NOT_AVAILABLE("5011","Vehicle Not Available for the date specified"),
+    DISTANCE_CALCULATION("5012","Error occurs during calculating the distance"),
+    DISTANCE_CALCULATION_URL("5013","Error occurs while hitting the URL for distance calculation"),
     ;
 
     private final String code;

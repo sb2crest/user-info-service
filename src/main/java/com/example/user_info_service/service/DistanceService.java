@@ -2,6 +2,8 @@ package com.example.user_info_service.service;
 
 import com.example.user_info_service.dto.DistanceRequest;
 import com.example.user_info_service.dto.DistanceResponse;
+import com.example.user_info_service.exception.BookingException;
+import com.example.user_info_service.exception.ResStatus;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,20 +29,24 @@ public class DistanceService {
 
     public DistanceResponse calculateDistance(DistanceRequest distanceRequest) throws IOException {
         DistanceResponse distanceResponse = new DistanceResponse();
-        if (Boolean.FALSE.equals(distanceRequest.getMultipleDestination())) {
-            double distance = getRouteDistance(
-                    distanceRequest.getSourceLatitude(), distanceRequest.getSourceLongitude(),
-                    distanceRequest.getDestinationLatitude(), distanceRequest.getDestinationLongitude()
-            );
+        try {
+            if (Boolean.FALSE.equals(distanceRequest.getMultipleDestination())) {
+                double distance = getRouteDistance(
+                        distanceRequest.getSourceLatitude(), distanceRequest.getSourceLongitude(),
+                        distanceRequest.getDestinationLatitude(), distanceRequest.getDestinationLongitude()
+                );
 
-            double returningDistance = getRouteDistance(
-                    distanceRequest.getDestinationLatitude(), distanceRequest.getDestinationLongitude(),
-                    distanceRequest.getSourceLatitude(), distanceRequest.getSourceLongitude()
-            );
-            double averageDistance = Math.round((distance + returningDistance) / 2);
-            distanceResponse.setDistance(averageDistance);
-            distanceResponse.setMultipleDestination(Boolean.FALSE);
-            return distanceResponse;
+                double returningDistance = getRouteDistance(
+                        distanceRequest.getDestinationLatitude(), distanceRequest.getDestinationLongitude(),
+                        distanceRequest.getSourceLatitude(), distanceRequest.getSourceLongitude()
+                );
+                double averageDistance = Math.round((distance + returningDistance) / 2);
+                distanceResponse.setDistance(averageDistance);
+                distanceResponse.setMultipleDestination(Boolean.FALSE);
+                return distanceResponse;
+            }
+        } catch (Exception e){
+            throw new BookingException(ResStatus.DISTANCE_CALCULATION);
         }
         distanceResponse.setMultipleDestination(Boolean.TRUE);
         return distanceResponse;
@@ -54,8 +60,7 @@ public class DistanceService {
 
             return parseDistanceFromJson(jsonResponse);
         } catch (Exception e) {
-            throw new RuntimeException("Error while calculating distance.", e);
-
+            throw new BookingException(ResStatus.DISTANCE_CALCULATION_URL);
         }
     }
 

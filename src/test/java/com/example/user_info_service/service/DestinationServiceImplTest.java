@@ -4,8 +4,10 @@ import com.example.user_info_service.dto.DistanceRequest;
 import com.example.user_info_service.dto.DistanceResponse;
 import com.example.user_info_service.entity.DestinationEntity;
 import com.example.user_info_service.entity.MasterEntity;
+import com.example.user_info_service.entity.VehicleEntity;
 import com.example.user_info_service.repository.DestinationRepository;
 import com.example.user_info_service.repository.MasterEntityRepo;
+import com.example.user_info_service.repository.VehicleInfoRepo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,9 +39,13 @@ class DestinationServiceImplTest {
     @Mock
     private DistanceService distanceService;
 
+    @Mock
+    private VehicleInfoRepo vehicleInfoRepo;
+
     @Test
     public void getAmountDetails_For_Trip() throws IOException {
         when(destinationRepository.getAmountData(Mockito.any(), any())).thenReturn(getDestinationEntity());
+        when(vehicleInfoRepo.getByVehicleNumber(Mockito.any())).thenReturn(new VehicleEntity());
         when(masterEntityRepo.findTripAmount(Mockito.any(), any())).thenReturn(getMasterEntity());
         when(distanceService.calculateDistance(Mockito.any())).thenReturn(getDistanceResponse());
         Assertions.assertNotNull(destinationServiceImpl.getAmountDetails(getDistanceRequest()));

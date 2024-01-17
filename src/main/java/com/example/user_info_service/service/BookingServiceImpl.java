@@ -342,27 +342,23 @@ public class BookingServiceImpl implements BookingService {
                     .collect(Collectors.toList());
 
             DistanceRequest distanceRequest = getDistanceRequestDetails(vehiclesAvailable, uniqueVehicleNumbers);
-            try {
-                List<DestinationResponse> destinationResponses = destinationServiceImpl.getAmountDetails(distanceRequest);
+            List<DestinationResponse> destinationResponses = destinationServiceImpl.getAmountDetails(distanceRequest);
 
-                Map<String, DestinationResponse> destinationResponseMap = destinationResponses.stream()
-                        .filter(response -> response.getVehicleNumber() != null && !response.getVehicleNumber().isEmpty())
-                        .collect(Collectors.toMap(DestinationResponse::getVehicleNumber, Function.identity()));
+            Map<String, DestinationResponse> destinationResponseMap = destinationResponses.stream()
+                    .filter(response -> response.getVehicleNumber() != null && !response.getVehicleNumber().isEmpty())
+                    .collect(Collectors.toMap(DestinationResponse::getVehicleNumber, Function.identity()));
 
-                for (VehicleEntity vehicleEntity : vehicleEntities) {
-                    String vehicleNumber = vehicleEntity.getVehicleNumber();
-                    DestinationResponse destinationResponse = destinationResponseMap.get(vehicleNumber);
+            for (VehicleEntity vehicleEntity : vehicleEntities) {
+                String vehicleNumber = vehicleEntity.getVehicleNumber();
+                DestinationResponse destinationResponse = destinationResponseMap.get(vehicleNumber);
 
-                    if (destinationResponse != null) {
-                        VehicleDto vehicleDto = getVehiclePojo(destinationResponse, vehicleEntity);
-                        vehicleDtos.add(vehicleDto);
-                    }
+                if (destinationResponse != null) {
+                    VehicleDto vehicleDto = getVehiclePojo(destinationResponse, vehicleEntity);
+                    vehicleDtos.add(vehicleDto);
                 }
-            } catch (Exception e) {
-                throw new NullPointerException(e.getMessage());
             }
             return vehicleDtos;
-        } catch (BookingException bookingException) {
+        } catch (Exception e) {
             throw new BookingException(ResStatus.VEHICLE_NOT_AVAILABLE);
         }
     }

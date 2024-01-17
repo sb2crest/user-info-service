@@ -5,9 +5,11 @@ import com.example.user_info_service.dto.DistanceRequest;
 import com.example.user_info_service.dto.DistanceResponse;
 import com.example.user_info_service.entity.DestinationEntity;
 import com.example.user_info_service.entity.MasterEntity;
+import com.example.user_info_service.entity.VehicleEntity;
 import com.example.user_info_service.model.Constants;
 import com.example.user_info_service.repository.DestinationRepository;
 import com.example.user_info_service.repository.MasterEntityRepo;
+import com.example.user_info_service.repository.VehicleInfoRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,9 @@ public class DestinationServiceImpl implements DestinationService {
 
     @Autowired
     private DistanceService distanceService;
+
+    @Autowired
+    private VehicleInfoRepo vehicleInfoRepo;
 
     @Override
     public List<DestinationResponse>  getAmountDetails(DistanceRequest distanceRequest) throws IOException {
@@ -78,7 +83,8 @@ public class DestinationServiceImpl implements DestinationService {
             if (distanceRequest.getMultipleDestination()) {
                 destinationResponse.setSource(distanceRequest.getSource());
                 destinationResponse.setAdvanceAmt(masterEntity.getAmount());
-                destinationResponse.setAmtPerKM(10.00);
+                VehicleEntity vehicleEntity = vehicleInfoRepo.getByVehicleNumber(masterEntity.getVehicleNumber());
+                destinationResponse.setAmtPerKM(vehicleEntity.getAmtPerKM());
                 destinationResponse.setVehicleNumber(masterEntity.getVehicleNumber());
             } else {
                 destinationResponse.setTotalAmount(masterEntity.getAmount());
