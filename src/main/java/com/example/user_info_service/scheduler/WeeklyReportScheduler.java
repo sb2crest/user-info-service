@@ -149,9 +149,9 @@ public class WeeklyReportScheduler {
         PdfFont companyFont = PdfFontFactory.createFont(StandardFonts.TIMES_ROMAN);
         Paragraph companyParagraph = new Paragraph()
                 .add("\n")
-                .add(new Text("NANDU BUS").setFont(companyFont).setFontSize(20)) // Set font size to 20px
+                .add(new Text("NANDUBUS").setFont(companyFont).setFontSize(20)) // Set font size to 20px
                 .add("\n") // Add a new line
-                .add(new Text("Yelahanka New Town, Bangaluru, 560064 \n\n\n").setFont(companyFont).setFontSize(10)); // Set font size to 10px
+                .add(new Text("#584 (Seabed2Crest Pvt Ltd) Near Suryodaya School, Hesaraghatta Hobli, Rajanukunte, Yelahanka Taluk, Bangalore North, Karnataka - 560064 \n\n\n").setFont(companyFont).setFontSize(10)); // Set font size to 10px
 
         companyDetailsTable.addCell(new Cell().add(companyParagraph).setTextAlignment(TextAlignment.CENTER).setBorder(Border.NO_BORDER).setMarginTop(20f));
 

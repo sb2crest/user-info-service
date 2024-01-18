@@ -21,6 +21,7 @@ public enum ResStatus {
     VEHICLE_NOT_AVAILABLE("5011","Vehicle Not Available for the date specified"),
     DISTANCE_CALCULATION("5012","Error occurs during calculating the distance"),
     DISTANCE_CALCULATION_URL("5013","Error occurs while hitting the URL for distance calculation"),
+    ERROR_WHILE_SENDING_EMAIL("5014","Error occurs while sending an email"),
     ;
 
     private final String code;

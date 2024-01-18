@@ -151,7 +151,7 @@ public class TomorrowsBooking {
         emailContent.append("<p>Thank you for choosing <strong>NanduBus</strong> for your travel needs.</p>");
 
         emailContent.append("<br>");
-        emailContent.append("<p><strong>Nandu Kasaram</strong><br><strong>General Manager</strong><br><strong>SeaBed2Crest Technologies Private Limited</strong><br><strong>Rajanukunte, Bangalore - 560064</strong></p>");
+        emailContent.append("<p><strong>Nandu Kasaram</strong><br><strong>General Manager</strong><br><strong>SeaBed2Crest Technologies Private Limited</strong><br><strong>Near Suryodaya School, Hesaraghatta Hobli, Rajanukunte, Yelahanka Taluk, Bangalore North, Karnataka - 560064</strong></p>");
         emailContent.append("</body></html>");
 
         helper.setTo(user.getEmail());

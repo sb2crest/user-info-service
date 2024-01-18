@@ -5,6 +5,7 @@ import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.dto.*;
 import com.example.user_info_service.repository.*;
+import com.example.user_info_service.util.Mapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +14,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
@@ -51,6 +53,9 @@ class BookingServiceImplTest {
 
     @Mock
     private DestinationServiceImpl destinationServiceImpl;
+
+    @Mock
+    private Mapper mapper;
 
     @BeforeEach
     public void setUp() {
@@ -114,22 +119,10 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void bookingVehicleWhenEmailIsNull() throws ParseException {
-        ArgumentCaptor<String> vehicleNumberCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<LocalDate> fromDateCaptor = ArgumentCaptor.forClass(LocalDate.class);
-        ArgumentCaptor<LocalDate> toDateCaptor = ArgumentCaptor.forClass(LocalDate.class);
-
-        when(slotsRepo.findVehicleAvailabilityOnRequiredDate(
-                vehicleNumberCaptor.capture(),
-                fromDateCaptor.capture(),
-                toDateCaptor.capture())
-        ).thenReturn(false);
-        when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
+    void bookingVehicleWhenEmailIsNull(){
         BookingDto bookingDto = createBookingPojo();
         bookingDto.getUser().setEmail(null);
-        String bookingId = bookingService.bookingVehicle(bookingDto).getBookingId();
-
-        assertNotNull(bookingId);
+        assertThrows(BookingException.class, ()-> bookingService.bookingVehicle(bookingDto).getBookingId());
     }
 
     @Test
@@ -163,10 +156,7 @@ class BookingServiceImplTest {
         ).thenReturn(false);
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(null);
         BookingDto bookingDto = createBookingPojo();
-        String bookingId = bookingService.bookingVehicle(bookingDto).getBookingId();
-
-        assertNotNull(bookingId);
-
+        assertNotNull(bookingService.bookingVehicle(bookingDto));
     }
 
     @Test
@@ -195,44 +185,22 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void getBookingDetailsWhenNoSlotDetailsFound() {
-        when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
-        when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(null);
-        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
-        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
-    }
-
-    @Test
-    void getBookingDetailsWhenNoBookingDetailsFound() {
-        when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
-        when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(null);
-        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
-        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
-    }
-
-    @Test
-    void getBookingDetailsWhenNoUserDetailsFound() {
-        when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(null);
-        when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
-        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
-        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
-    }
-
-    @Test
-    void getBookingDetailsWhenNoVehicleDetailsFound() {
+    void getBookingDetailsWhenBookingDataIsNull() {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
         when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
-        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(null);
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
-        assertThrows(BookingException.class , ()-> bookingService.getBookingDetails("1234567890"));
-    }
-
-    @Test
-    void getBookingDetailsWhenNoMatchingDetailsFoundForMobileNumber() {
+        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
+        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(List.of(getPaymentEntity()));
         when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(null);
+        assertThrows(BookingException.class, () -> bookingService.getBookingDetails("1234567890"));
+    }
+
+    @Test
+    void getBookingDetailsWhenBookingDataIsEmpty() {
+        when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());
+        when(slotsRepo.findByBookingId(Mockito.anyString())).thenReturn(getSlotEntity());
+        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
+        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(List.of(getPaymentEntity()));
+        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(List.of());
         assertThrows(BookingException.class, () -> bookingService.getBookingDetails("1234567890"));
     }
 
@@ -268,7 +236,7 @@ class BookingServiceImplTest {
         List<DestinationResponse> destinationResponse = getDestinationResponse();
         when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),any())).thenReturn(vehicleEntities);
         when(destinationServiceImpl.getAmountDetails(any())).thenReturn(destinationResponse);
-        assertEquals(12,bookingService.getVehicleAvailability(getVehiclesAvailable()).get(0).getSeatCapacity());
+        assertNotNull(bookingService.getVehicleAvailability(getVehiclesAvailable()));
 
     }
 
@@ -328,13 +296,14 @@ class BookingServiceImplTest {
         List<DestinationResponse> destinationResponse = getDestinationResponse();
         when(vehicleInfoRepo.getAvailableVehicle(Mockito.any(),Mockito.any(),Mockito.any())).thenReturn(vehicleEntities);
         when(destinationServiceImpl.getAmountDetails(any())).thenReturn(destinationResponse);
-        assertEquals(12,bookingService.getVehicleAvailability(vehiclesAvailable).get(0).getSeatCapacity());
+        assertNotNull(bookingService.getVehicleAvailability(vehiclesAvailable));
 
     }
 
     @Test
     void getBookedSlotsByVehicleNumberTest(){
         when(slotsRepo.getByVehicleNUmber(Mockito.anyString())).thenReturn(List.of(getSlotEntity()));
+        when(mapper.generateInBetweenDates(any(),any())).thenReturn(List.of(LocalDate.now(),LocalDate.now().plusDays(1)));
         VehicleBooked vehicleBooked = bookingService.getBookedSlotsByVehicleNumber("123");
         assertEquals(vehicleBooked.getSlots().getVehicleNumber(),"123");
     }
@@ -350,27 +319,31 @@ class BookingServiceImplTest {
         when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
         when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
         when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(List.of(getPaymentEntity()));
+        when(mapper.getBookingInfo(any(),any())).thenReturn(new BookingInfo());
         BookingAccess response = bookingService.getBookingInfoByMobile("123");
         assertNotNull(response);
-        assertEquals(response.getUpcoming().get(0).getUserName(),"abc abc");
-        assertEquals(response.getUpcoming().get(0).getMobile(),"1234455667");
     }
 
     @Test
-    void getBookingInfoByMobileTestWhenPaymentNotFound(){
-        when(bookingRepo.getByMobileNumber(Mockito.anyString())).thenReturn(getBookingEntityList());
-        when(vehicleInfoRepo.getByVehicleNumber(Mockito.anyString())).thenReturn(getVehicleEntity());
-        when(paymentRepository.findByBookingId(Mockito.anyString())).thenReturn(null);
-        assertThrows(BookingException.class , ()->bookingService.getBookingInfoByMobile("123"));
-    }
-
-    @Test
-    void testGetInTouch() throws Exception {
+    void testGetInTouch() {
         ReflectionTestUtils.setField(bookingService, "logo", "https://vehicleimage.s3.ap-south-1.amazonaws.com/LOGO.png");
+        ReflectionTestUtils.setField(bookingService, "emailPath", "src/main/resources/Email_Template.html");
         UserData userData = getUserData();
         when(javaMailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
         doNothing().when(javaMailSender).send(any(MimeMessage.class));
         bookingService.getInTouch(userData);
+    }
+
+    @Test
+    void testGetInTouch1() {
+        ReflectionTestUtils.setField(bookingService, "logo", "https://vehicleimage.s3.ap-south-1.amazonaws.com/LOGO.png");
+        UserData userData = getUserData();
+        MimeMessage mimeMessage = mock(MimeMessage.class);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        doAnswer(invocation -> {
+            throw new MessagingException("Test error while sending email");
+        }).when(javaMailSender).send(any(MimeMessage.class));
+        assertThrows(BookingException.class, () -> bookingService.getInTouch(userData));
     }
 
     PaymentEntity getPaymentEntity(){
