@@ -8,9 +8,11 @@ import com.example.user_info_service.dto.*;
 import com.example.user_info_service.repository.*;
 import com.example.user_info_service.util.CommonFunction;
 import com.example.user_info_service.util.Mapper;
+import com.example.user_info_service.util.Validation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -18,8 +20,8 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -147,13 +149,13 @@ public class BookingServiceImpl implements BookingService {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-            String emailTemplate = Files.readString(Paths.get(emailPath));
+            String emailTemplate = readEmailTemplate();
 
             String messageBody = emailTemplate
-                    .replace("{user_name}", userData.getName())
-                    .replace("{user_email}", userData.getEmail())
-                    .replace("{user_message}", userData.getMessage())
-                    .replace("{logo}", logo);
+                    .replace("{user_name}", Objects.toString(userData.getName(), ""))
+                    .replace("{user_email}", Objects.toString(userData.getEmail(), ""))
+                    .replace("{user_message}", Objects.toString(userData.getMessage(), ""))
+                    .replace("{logo}", Objects.toString(logo, ""));
 
             helper.setTo(toEmailAddress);
             helper.setSubject("Pay attention: User Details to get in touch ");
@@ -162,6 +164,16 @@ public class BookingServiceImpl implements BookingService {
             javaMailSender.send(message);
         } catch (Exception e) {
             throw new BookingException(ResStatus.ERROR_WHILE_SENDING_EMAIL);
+        }
+    }
+
+    private String readEmailTemplate() {
+        try {
+            InputStream inputStream = new ClassPathResource(emailPath).getInputStream();
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.error("Error reading email template", e);
+            throw new BookingException(ResStatus.ERROR_WHILE_READING_EMAIL_PATH);
         }
     }
 

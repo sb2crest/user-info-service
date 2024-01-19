@@ -9,6 +9,8 @@ import java.util.List;
 
 public class Validation {
 
+
+
     public static void userMobileValidation(String mobile) {
         if (mobile.isEmpty()) {
             throw new BookingException(ResStatus.ENTER_NUMBER);

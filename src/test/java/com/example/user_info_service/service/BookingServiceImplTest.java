@@ -327,7 +327,7 @@ class BookingServiceImplTest {
     @Test
     void testGetInTouch() {
         ReflectionTestUtils.setField(bookingService, "logo", "https://vehicleimage.s3.ap-south-1.amazonaws.com/LOGO.png");
-        ReflectionTestUtils.setField(bookingService, "emailPath", "src/main/resources/Email_Template.html");
+        ReflectionTestUtils.setField(bookingService, "emailPath", "Email_Template.html");
         UserData userData = getUserData();
         when(javaMailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
         doNothing().when(javaMailSender).send(any(MimeMessage.class));
@@ -335,7 +335,7 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void testGetInTouch1() {
+    void testGetInTouchWhenExceptionThrows() {
         ReflectionTestUtils.setField(bookingService, "logo", "https://vehicleimage.s3.ap-south-1.amazonaws.com/LOGO.png");
         UserData userData = getUserData();
         MimeMessage mimeMessage = mock(MimeMessage.class);
