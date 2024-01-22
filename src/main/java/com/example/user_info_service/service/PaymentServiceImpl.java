@@ -11,6 +11,7 @@ import com.example.user_info_service.dto.PaymentResponse;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.PaymentRepository;
+import com.example.user_info_service.util.Mapper;
 import com.razorpay.Order;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,9 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Autowired
     BookingRepo bookingRepo;
+
+    @Autowired
+    Mapper mapper;
 
     private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss");
 
@@ -147,6 +151,7 @@ public class PaymentServiceImpl implements PaymentService {
             bookingEntity.setRemainingAmount(bookingEntity.getTotalAmount() - bookingEntity.getAdvanceAmountPaid());
             bookingRepo.save(bookingEntity);
             paymentRepository.save(paymentEntity);
+            mapper.saveSlot(bookingEntity);
             bookingResponse.setMessage("Payment Successful");
             bookingResponse.setStatusCode(HttpStatus.OK.value());
             return new ResponseEntity<>(bookingResponse, HttpStatus.OK);

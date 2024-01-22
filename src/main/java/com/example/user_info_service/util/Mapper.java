@@ -74,7 +74,8 @@ public class Mapper {
         }
     }
 
-    public void saveSlot(SlotsEntity slotsEntity, BookingEntity bookingEntity) {
+    public void saveSlot(BookingEntity bookingEntity) {
+        SlotsEntity slotsEntity = new SlotsEntity();
         slotsEntity.setIsAvailable(false);
         slotsEntity.setFromDate(bookingEntity.getFromDate());
         slotsEntity.setToDate(bookingEntity.getToDate());

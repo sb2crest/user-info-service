@@ -80,7 +80,6 @@ public class BookingServiceImpl implements BookingService {
         if (!vehicleAvailability) {
             mapper.saveUser(bookingDto);
             mapper.saveBooking(bookingEntity, bookingDto);
-            mapper.saveSlot(slotsEntity, bookingEntity);
         } else {
             bookingResponse.setBookingId(null);
             bookingResponse.setMessage("Slots already Booked");

@@ -10,6 +10,7 @@ import com.example.user_info_service.dto.PaymentData;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.PaymentRepository;
+import com.example.user_info_service.util.Mapper;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -41,6 +42,9 @@ public class PaymentServiceImplTest {
 
     @Mock
     private BookingRepo bookingRepo;
+
+    @Mock
+    private Mapper mapper;
 
     @Mock
     private RazorpayClient razorpayClient;

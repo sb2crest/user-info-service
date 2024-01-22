@@ -64,7 +64,7 @@ class MapperTest {
 
     @Test
     void testSaveSlot(){
-        mapper.saveSlot(new SlotsEntity(), new BookingEntity());
+        mapper.saveSlot(new BookingEntity());
     }
 
     @Test
