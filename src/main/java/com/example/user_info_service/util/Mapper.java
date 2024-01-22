@@ -6,6 +6,15 @@ import com.example.user_info_service.exception.ACType;
 import com.example.user_info_service.exception.SleeperType;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.repository.*;
+import com.itextpdf.kernel.colors.Color;
+import com.itextpdf.kernel.events.Event;
+import com.itextpdf.kernel.events.IEventHandler;
+import com.itextpdf.kernel.events.PdfDocumentEvent;
+import com.itextpdf.kernel.geom.Rectangle;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfPage;
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
+import com.itextpdf.layout.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -210,5 +219,49 @@ public class Mapper {
             currentDate = currentDate.plusDays(1);
         }
         return inBetweenDates;
+    }
+
+    public static class HeaderFooterEventHandler implements IEventHandler {
+        private Color borderColor;
+        private float borderWidth;
+
+        public HeaderFooterEventHandler(Color borderColor, float borderWidth) {
+            this.borderColor = borderColor;
+            this.borderWidth = borderWidth;
+        }
+
+        @Override
+        public void handleEvent(Event event) {
+            PdfDocumentEvent docEvent = (PdfDocumentEvent) event;
+            PdfDocument pdfDoc = docEvent.getDocument();
+            PdfPage page = docEvent.getPage();
+
+            Document doc = new Document(pdfDoc);
+
+            PdfCanvas canvas = new PdfCanvas(page.newContentStreamAfter(), page.getResources(), pdfDoc);
+            Rectangle pageSize = page.getPageSize();
+            float leftX = pageSize.getLeft() + 10 + borderWidth / 2;
+            float rightX = pageSize.getRight() - 10 - borderWidth / 2;
+            float topY = pageSize.getTop() - 25 - borderWidth / 2;
+            float bottomY = pageSize.getBottom() + 25 + borderWidth / 2;
+
+            canvas.setStrokeColor(borderColor);
+            canvas.setLineWidth(borderWidth);
+            canvas.moveTo(leftX, topY);
+            canvas.lineTo(rightX, topY);
+            canvas.stroke();
+
+            canvas.moveTo(leftX, topY);
+            canvas.lineTo(leftX, bottomY);
+            canvas.stroke();
+
+            canvas.moveTo(rightX, topY);
+            canvas.lineTo(rightX, bottomY);
+            canvas.stroke();
+
+            canvas.moveTo(leftX, bottomY);
+            canvas.lineTo(rightX, bottomY);
+            canvas.stroke();
+        }
     }
 }

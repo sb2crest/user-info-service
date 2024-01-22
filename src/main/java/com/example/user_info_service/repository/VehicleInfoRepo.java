@@ -22,4 +22,6 @@ public interface VehicleInfoRepo extends JpaRepository<VehicleEntity, Integer> {
             "AND (COALESCE(:filter) IS NULL OR v.filter IN :filter)")
     List<VehicleEntity> getAvailableVehicle(@Param("filter") List<String> filter, LocalDate fromDate, LocalDate toDate );
 
+    @Query("select v from VehicleEntity v where v.vehicleNumber IN (:vehicleNumbers)")
+    List<VehicleEntity> getByVehicleNumbers(List<String> vehicleNumbers);
 }

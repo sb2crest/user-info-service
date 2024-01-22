@@ -59,7 +59,21 @@ class TomorrowsBookingTest {
     void upcomingBookingsTest() throws Exception {
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
         when(bookingRepo.getTomorrowsBooking(any())).thenReturn(getBookingEntity());
-        when(vehicleInfoRepo.getByVehicleNumber(any())).thenReturn(getVehicleEntity());
+        when(vehicleInfoRepo.getByVehicleNumbers(any())).thenReturn(getVehicleEntity());
+        doNothing().when(mailSender).send(any(MimeMessage.class));
+        doNothing().when(emailTransport).send(any(MimeMessage.class));
+        tomorrowsBooking.tomorrowsBookingDetails();
+        verify(bookingRepo , times(1)).getTomorrowsBooking(Mockito.any());
+
+    }
+
+    @Test
+    void upcomingBookingsTest1() throws Exception {
+        List<BookingEntity> bookingEntities = getBookingEntity();
+        bookingEntities.get(0).getUserEntity().setEmail(null);
+        when(mailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
+        when(bookingRepo.getTomorrowsBooking(any())).thenReturn(bookingEntities);
+        when(vehicleInfoRepo.getByVehicleNumbers(any())).thenReturn(getVehicleEntity());
         doNothing().when(mailSender).send(any(MimeMessage.class));
         doNothing().when(emailTransport).send(any(MimeMessage.class));
         tomorrowsBooking.tomorrowsBookingDetails();
@@ -106,6 +120,7 @@ class TomorrowsBookingTest {
         user.setMiddleName("abc");
         user.setLastName("abc");
         user.setMobile("1234");
+        user.setEmail("abc@gmail.com");
         bookingEntity.setUserEntity(user);
         bookingEntity.setVehicleNumber("ka02m1234");
         bookingEntity.setBookingDate(LocalDate.now());
@@ -113,18 +128,38 @@ class TomorrowsBookingTest {
         bookingEntity.setToDate(LocalDate.now().minusDays(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
 
+        BookingEntity bookingEntity1 = new BookingEntity();
+        bookingEntity1.setBookingId("123");
+        bookingEntity1.setMobile("1234");
+        bookingEntity1.setId(1L);
+        UserEntity user1 = new UserEntity();
+        user1.setFirstName("abc");
+        user1.setMiddleName("abc");
+        user1.setLastName("abc");
+        user1.setMobile("1234");
+        user1.setEmail("abc@gmail.com");
+        bookingEntity1.setUserEntity(user1);
+        bookingEntity1.setVehicleNumber("ka02m1234");
+        bookingEntity1.setBookingDate(LocalDate.now());
+        bookingEntity1.setFromDate(LocalDate.now().minusDays(3));
+        bookingEntity1.setToDate(LocalDate.now().minusDays(1));
+        bookingEntity1.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+
         bookingEntityList.add(booking);
         bookingEntityList.add(bookingEntity);
+        bookingEntityList.add(bookingEntity1);
         return bookingEntityList;
     }
 
-    VehicleEntity getVehicleEntity() {
+    List<VehicleEntity> getVehicleEntity() {
+        List<VehicleEntity> vehicleEntities = new ArrayList<>();
         VehicleEntity vehicleEntity = new VehicleEntity();
         vehicleEntity.setVehicleNumber("ka02m1234");
         vehicleEntity.setSeatCapacity(12);
         vehicleEntity.setFilter("FS/AC");
         vehicleEntity.setS3ImageUrl(List.of("http/image"));
         vehicleEntity.setVId(1L);
-        return vehicleEntity;
+        vehicleEntities.add(vehicleEntity);
+        return vehicleEntities;
     }
 }

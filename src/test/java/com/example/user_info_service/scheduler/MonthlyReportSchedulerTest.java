@@ -61,7 +61,7 @@ class MonthlyReportSchedulerTest {
     @Test
     void testSendWeeklyReportEmail() throws Exception {
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage((Session) null));
-        when(bookingRepo.getReportForWeeklyAndMonthly(any(),any())).thenReturn(List.of(getBookingEntity()));
+        when(bookingRepo.getReportForWeeklyAndMonthly(any(),any())).thenReturn(List.of(getBookingEntity(),getBookingEntityWithAmount()));
         doNothing().when(mailSender).send(any(MimeMessage.class));
         doNothing().when(emailTransport).send(any(MimeMessage.class));
         scheduler.sendMonthlyReportEmail();
@@ -90,6 +90,23 @@ class MonthlyReportSchedulerTest {
         bookingEntity.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity.setToDate(LocalDate.now().minusDays(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+        return bookingEntity;
+    }
+
+    BookingEntity getBookingEntityWithAmount() {
+        BookingEntity bookingEntity = new BookingEntity();
+        bookingEntity.setBookingId("123");
+        bookingEntity.setMobile("1234");
+        bookingEntity.setId(1L);
+        bookingEntity.setUserEntity(null);
+        bookingEntity.setVehicleNumber("ka02m1234");
+        bookingEntity.setBookingDate(LocalDate.now());
+        bookingEntity.setFromDate(LocalDate.now().minusDays(3));
+        bookingEntity.setToDate(LocalDate.now().minusDays(1));
+        bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
+        bookingEntity.setTotalAmount(10000.00);
+        bookingEntity.setAdvanceAmountPaid(5000.00);
+        bookingEntity.setRemainingAmount(5000.00);
         return bookingEntity;
     }
 }

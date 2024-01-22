@@ -4,15 +4,12 @@ import com.example.user_info_service.entity.BookingEntity;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.model.EmailTransport;
 import com.example.user_info_service.repository.BookingRepo;
+import com.example.user_info_service.util.Mapper;
 import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.Color;
 import com.itextpdf.kernel.colors.DeviceRgb;
-import com.itextpdf.kernel.events.Event;
-import com.itextpdf.kernel.events.IEventHandler;
 import com.itextpdf.kernel.events.PdfDocumentEvent;
-import com.itextpdf.kernel.geom.Rectangle;
 import com.itextpdf.kernel.pdf.*;
-import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.element.*;
@@ -41,12 +38,16 @@ import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
 
+
 @Service
 @PropertySource("classpath:application.properties")
 public class WeeklyReportScheduler {
 
     @Autowired
     BookingRepo bookingRepo;
+
+    @Autowired
+    Mapper mapper;
 
     @Autowired
     @Qualifier("defaultEmailTransport")
@@ -82,14 +83,14 @@ public class WeeklyReportScheduler {
     @Value("${nandu.bus.image}")
     private String logo;
 
-    private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yy");
 
     public WeeklyReportScheduler(EmailTransport emailTransport, BookingRepo bookingRepo) {
         this.emailTransport = emailTransport;
         this.bookingRepo = bookingRepo;
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 0 * * SUN")
     public void sendWeeklyReportEmail() throws MessagingException, IOException {
 
         Session session = SessionProvider.createSession(mailHost, mailPort, emailUsername, emailPassword,
@@ -139,8 +140,8 @@ public class WeeklyReportScheduler {
         float borderWidth = 2f; // Border width (adjust as needed)
 
         // Set header and footer properties for all pages
-        pdfDoc.addEventHandler(PdfDocumentEvent.START_PAGE, new HeaderFooterEventHandler(borderColor, borderWidth));
-        List<BookingEntity> bookingEntityList = bookingRepo.getReportForWeeklyAndMonthly(startDate,endDate);
+        pdfDoc.addEventHandler(PdfDocumentEvent.START_PAGE, new Mapper.HeaderFooterEventHandler(borderColor, borderWidth));
+        List<BookingEntity> bookingEntityList = bookingRepo.getReportForWeeklyAndMonthly(startDate, endDate);
 
         // Create a table for company details and watermark image
         Table companyDetailsTable = new Table(UnitValue.createPercentArray(new float[]{5, 1}));
@@ -177,7 +178,7 @@ public class WeeklyReportScheduler {
 
             doc.add(dateTable);
 
-            float[] bookingInfoColumnWidths = {130, 130, 145, 150, 150, 130};
+            float[] bookingInfoColumnWidths = {130, 130, 145, 150, 150, 130, 130, 130, 130};
             Table bookingTable = new Table(bookingInfoColumnWidths);
             bookingTable.setTextAlignment(TextAlignment.CENTER);
             bookingTable.addCell(new Cell().add(new Paragraph("Booking ID")));
@@ -186,15 +187,21 @@ public class WeeklyReportScheduler {
             bookingTable.addCell(new Cell().add(new Paragraph("From Date")));
             bookingTable.addCell(new Cell().add(new Paragraph("To Date")));
             bookingTable.addCell(new Cell().add(new Paragraph("Booking Status")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Total Amount")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Advance Paid")));
+            bookingTable.addCell(new Cell().add(new Paragraph("Balance Amount")));
 
 
             for (BookingEntity entity : bookingEntityList) {
-                bookingTable.addCell(new Cell().add(new Paragraph(entity.getBookingId())));
-                bookingTable.addCell(new Cell().add(new Paragraph(entity.getVehicleNumber())));
-                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getBookingDate()))));
-                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getFromDate()))));
-                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getToDate()))));
-                bookingTable.addCell(new Cell().add(new Paragraph(BookingStatusEnum.getDesc(entity.getBookingStatus()))));
+                bookingTable.addCell(new Cell().add(new Paragraph(entity.getBookingId()).setFontSize(8)));
+                bookingTable.addCell(new Cell().add(new Paragraph(entity.getVehicleNumber()).setFontSize(8)));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getBookingDate())).setFontSize(8)));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getFromDate())).setFontSize(8)));
+                bookingTable.addCell(new Cell().add(new Paragraph(format.format(entity.getToDate())).setFontSize(8)));
+                bookingTable.addCell(new Cell().add(new Paragraph(BookingStatusEnum.getDesc(entity.getBookingStatus())).setFontSize(8)));
+                bookingTable.addCell(new Cell().add(new Paragraph(String.valueOf(entity.getTotalAmount() != null ? entity.getTotalAmount() : 0.00)).setFontSize(8)));
+                bookingTable.addCell(new Cell().add(new Paragraph(String.valueOf(entity.getAdvanceAmountPaid() != null ? entity.getAdvanceAmountPaid() : 0.00)).setFontSize(8)));
+                bookingTable.addCell(new Cell().add(new Paragraph(String.valueOf(entity.getRemainingAmount() != null ? entity.getRemainingAmount() : 0.00)).setFontSize(8)));
 
             }
 
@@ -213,55 +220,5 @@ public class WeeklyReportScheduler {
 
         System.out.println("PDF generated successfully.");
         return outputStream;
-    }
-
-    class HeaderFooterEventHandler implements IEventHandler {
-        private Color borderColor;
-        private float borderWidth;
-
-        public HeaderFooterEventHandler(Color borderColor, float borderWidth) {
-            this.borderColor = borderColor;
-            this.borderWidth = borderWidth;
-        }
-
-        @Override
-        public void handleEvent(Event event) {
-            PdfDocumentEvent docEvent = (PdfDocumentEvent) event;
-            PdfDocument pdfDoc = docEvent.getDocument();
-            PdfPage page = docEvent.getPage();
-
-            // Create a Document object for the page
-            Document doc = new Document(pdfDoc);
-
-            // Draw borders on the left and right sides of the page
-            PdfCanvas canvas = new PdfCanvas(page.newContentStreamAfter(), page.getResources(), pdfDoc);
-            Rectangle pageSize = page.getPageSize();
-            float leftX = pageSize.getLeft() + 10 + borderWidth / 2;
-            float rightX = pageSize.getRight() - 10 - borderWidth / 2;
-            float topY = pageSize.getTop() - 25 - borderWidth / 2;
-            float bottomY = pageSize.getBottom() + 25 + borderWidth / 2;
-
-            // Draw top border line
-            canvas.setStrokeColor(borderColor);
-            canvas.setLineWidth(borderWidth);
-            canvas.moveTo(leftX, topY);
-            canvas.lineTo(rightX, topY);
-            canvas.stroke();
-
-            // Draw left border line
-            canvas.moveTo(leftX, topY);
-            canvas.lineTo(leftX, bottomY);
-            canvas.stroke();
-
-            // Draw right border line
-            canvas.moveTo(rightX, topY);
-            canvas.lineTo(rightX, bottomY);
-            canvas.stroke();
-
-            // Draw bottom border line
-            canvas.moveTo(leftX, bottomY);
-            canvas.lineTo(rightX, bottomY);
-            canvas.stroke();
-        }
     }
 }
