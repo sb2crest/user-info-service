@@ -21,7 +21,7 @@ public class Validation {
     }
 
     public static void userEmailValidation(String email) {
-        if (email == null || !GmailValidator.isValidGmail(email)) {
+        if (email != null && !GmailValidator.isValidGmail(email)) {
             throw new BookingException(ResStatus.INVALID_EMAIL);
         }
     }
@@ -47,12 +47,6 @@ public class Validation {
     public static void validateUserEntity(UserEntity userEntity) {
         if (userEntity == null) {
             throw new BookingException(ResStatus.USER_NOT_FOUND);
-        }
-    }
-
-    public static void validateSlotEntity(SlotsEntity slotsEntity) {
-        if (slotsEntity == null) {
-            throw new BookingException(ResStatus.SLOTS_NOT_FOUND);
         }
     }
 

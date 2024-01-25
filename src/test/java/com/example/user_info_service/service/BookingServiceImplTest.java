@@ -119,10 +119,10 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void bookingVehicleWhenEmailIsNull(){
+    void bookingVehicleWhenEmailIsNull() throws ParseException {
         BookingDto bookingDto = createBookingPojo();
         bookingDto.getUser().setEmail(null);
-        assertThrows(BookingException.class, ()-> bookingService.bookingVehicle(bookingDto).getBookingId());
+        assertNotNull(bookingService.bookingVehicle(bookingDto));
     }
 
     @Test
@@ -158,22 +158,6 @@ class BookingServiceImplTest {
         BookingDto bookingDto = createBookingPojo();
         assertNotNull(bookingService.bookingVehicle(bookingDto));
     }
-
-    @Test
-    void bookingVehicleWhenVehicleIsAlreadyBooked() throws ParseException {
-        ArgumentCaptor<String> vehicleNumberCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<LocalDate> fromDateCaptor = ArgumentCaptor.forClass(LocalDate.class);
-        ArgumentCaptor<LocalDate> toDateCaptor = ArgumentCaptor.forClass(LocalDate.class);
-
-        when(slotsRepo.findVehicleAvailabilityOnRequiredDate(
-                vehicleNumberCaptor.capture(),
-                fromDateCaptor.capture(),
-                toDateCaptor.capture())
-        ).thenReturn(true);
-        assertNull(bookingService.bookingVehicle(createBookingPojo()).getBookingId());
-
-    }
-
     @Test
     void getBookingDetails() {
         when(userRepo.getUserByMobileNumber(Mockito.anyString())).thenReturn(getUserEntity());

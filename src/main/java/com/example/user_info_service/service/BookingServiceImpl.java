@@ -74,18 +74,10 @@ public class BookingServiceImpl implements BookingService {
 
         BookingResponse bookingResponse = new BookingResponse();
         BookingEntity bookingEntity = new BookingEntity();
-        SlotsEntity slotsEntity = new SlotsEntity();
 
-        boolean vehicleAvailability = slotsRepo.findVehicleAvailabilityOnRequiredDate(bookingDto.getVehicleNumber(), bookingDto.getFromDate(), bookingDto.getToDate());
-        if (!vehicleAvailability) {
-            mapper.saveUser(bookingDto);
-            mapper.saveBooking(bookingEntity, bookingDto);
-        } else {
-            bookingResponse.setBookingId(null);
-            bookingResponse.setMessage("Slots already Booked");
-            bookingResponse.setStatusCode(HttpStatus.IM_USED.value());
-            return bookingResponse;
-        }
+        mapper.saveUser(bookingDto);
+        mapper.saveBooking(bookingEntity, bookingDto);
+
         bookingResponse.setBookingId(bookingEntity.getBookingId());
         bookingResponse.setMessage("Booking successful");
         bookingResponse.setStatusCode(HttpStatus.OK.value());
@@ -106,7 +98,6 @@ public class BookingServiceImpl implements BookingService {
             BookingDetails bookingDetails = new BookingDetails();
             mapper.getBookingData(bookingDetails, bookingEntity);
             mapper.getUser(bookingEntity, bookingDetails);
-            mapper.getSlot(bookingEntity.getBookingId(), bookingDetails);
             mapper.getVehicleDetails(bookingDetails, bookingEntity.getVehicleNumber());
             if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.ENQUIRY.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
                 enquiryAndBookedList.add(bookingDetails);

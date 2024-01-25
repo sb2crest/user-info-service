@@ -45,7 +45,7 @@ public class TomorrowsBooking {
 
     private final LocalDate tomorrow = LocalDate.now().plusDays(1);
 
-    @Scheduled(cron = "0 0 10 * * ?")
+    @Scheduled(cron = "0 0 10 * * ?",zone = "Asia/Kolkata")
     public void tomorrowsBookingDetails() throws Exception {
 
         List<BookingEntity> bookingEntityList = bookingRepo.getTomorrowsBooking(tomorrow);
@@ -119,7 +119,7 @@ public class TomorrowsBooking {
             messageBody.append("</body></html>");
 
         } else {
-            messageBody.append("There is no Booking Details found on  this date.");
+            messageBody.append("There is no Booking Details found on this date.");
 
         }
 

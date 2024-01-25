@@ -18,7 +18,7 @@ public interface VehicleInfoRepo extends JpaRepository<VehicleEntity, Integer> {
             "WHERE NOT EXISTS (" +
             "    SELECT s FROM SlotsEntity s " +
             "    WHERE s.vehicleNumber = v.vehicleNumber " +
-            "      AND (:fromDate BETWEEN s.fromDate AND s.toDate OR :toDate BETWEEN s.fromDate AND s.toDate)) " +
+            "      AND (s.fromDate BETWEEN :fromDate AND :toDate OR s.toDate BETWEEN :fromDate AND :toDate)) " +
             "AND (COALESCE(:filter) IS NULL OR v.filter IN :filter)")
     List<VehicleEntity> getAvailableVehicle(@Param("filter") List<String> filter, LocalDate fromDate, LocalDate toDate );
 

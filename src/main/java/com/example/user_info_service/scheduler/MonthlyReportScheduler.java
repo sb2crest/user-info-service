@@ -89,7 +89,7 @@ public class MonthlyReportScheduler {
         this.bookingRepo = bookingRepo;
     }
 
-    @Scheduled(cron = "0 0 0 1 * ?")
+    @Scheduled(cron = "0 0 0 1 * ?",zone = "Asia/Kolkata")
     public void sendMonthlyReportEmail() throws Exception {
         Session session = SessionProvider.createSession(mailHost, mailPort, emailUsername, emailPassword,
                 mailStartTlsRequired, mailStartTlsEnable, mailSocketFactoryClass, mailDebug);

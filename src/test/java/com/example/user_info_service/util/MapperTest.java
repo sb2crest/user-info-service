@@ -74,6 +74,14 @@ class MapperTest {
     }
 
     @Test
+    void testGetBookingDataWhenStatusIsCompleted(){
+        BookingEntity bookingEntity = getBookingEntity();
+        bookingEntity.setBookingStatus("C");
+        when(paymentRepository.findByBookingId(anyString())).thenReturn(List.of(getPaymentEntity()));
+        mapper.getBookingData(new BookingDetails(),bookingEntity);
+    }
+
+    @Test
     void testGetBookingDataWhenStatusIsNotBooked(){
         BookingEntity bookingEntity = getBookingEntity();
         bookingEntity.setBookingStatus("a");
@@ -113,13 +121,6 @@ class MapperTest {
     }
 
     @Test
-    void testGetAmountWhenStatusIsEnquiry(){
-        BookingEntity bookingEntity = getBookingEntity();
-        bookingEntity.setBookingStatus("E");
-        Assertions.assertNull( mapper.getAmount(bookingEntity));
-    }
-
-    @Test
     void testGetUser(){
         when(userRepo.getUserByMobileNumber(anyString())).thenReturn(getUserEntity());
         mapper.getUser(getBookingEntity(),new BookingDetails());
@@ -130,17 +131,6 @@ class MapperTest {
         Assertions.assertThrows(BookingException.class,()->mapper.getUser(getBookingEntity(),new BookingDetails()));
     }
 
-    @Test
-    void testGetSlot(){
-        when(slotsRepo.findByBookingId(anyString())).thenReturn(getSlotEntity());
-        mapper.getSlot(anyString(),new BookingDetails());
-    }
-
-    @Test
-    void testGetSlotWhenSlotDataIsNull(){
-        when(slotsRepo.findByBookingId(anyString())).thenReturn(null);
-        Assertions.assertThrows(BookingException.class,()->mapper.getSlot(anyString(),new BookingDetails()));
-    }
 
     @Test
     void testGetBookingInfoWhenStatusIsBooked(){
@@ -160,6 +150,7 @@ class MapperTest {
     void testGetBookingInfoWhenStatusIsEnquiry(){
         BookingEntity bookingEntity = getBookingEntity();
         bookingEntity.setBookingStatus("E");
+        when(paymentRepository.findByBookingId(anyString())).thenReturn(List.of(getPaymentEntity()));
         mapper.getBookingInfo(getVehicleEntity(),bookingEntity);
     }
 

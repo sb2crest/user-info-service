@@ -94,20 +94,21 @@ public class Mapper {
         bookingDetails.setBookingId(bookingEntity.getBookingId());
         bookingDetails.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
         bookingDetails.setBookingDate(bookingEntity.getBookingDate());
-        bookingDetails.setTotalAmt(bookingEntity.getTotalAmount());
-        if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
+        if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
+            bookingDetails.setTotalAmt(bookingEntity.getTotalAmount());
             bookingDetails.setAdvancedPaid(getAmount(bookingEntity));
             bookingDetails.setRemainingAmt(bookingEntity.getTotalAmount() - bookingEntity.getAdvanceAmountPaid());
         }
+        SlotsDto slotsDto = new SlotsDto();
+        slotsDto.setFromDate(localDateFormat.format(bookingEntity.getFromDate()));
+        slotsDto.setToDate(localDateFormat.format(bookingEntity.getToDate()));
+        bookingDetails.setSlots(slotsDto);
     }
 
     public Double getAmount(BookingEntity bookingEntity) {
-        if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
-            List<PaymentEntity> paymentEntities = paymentRepository.findByBookingId(bookingEntity.getBookingId());
-            validatePaymentEntityList(paymentEntities);
-            return paymentEntities.stream().mapToDouble(PaymentEntity::getAmount).sum();
-        }
-        return null;
+        List<PaymentEntity> paymentEntities = paymentRepository.findByBookingId(bookingEntity.getBookingId());
+        validatePaymentEntityList(paymentEntities);
+        return paymentEntities.stream().mapToDouble(PaymentEntity::getAmount).sum();
     }
 
     public void getUser(BookingEntity bookingEntity, BookingDetails bookingDetails) {
@@ -119,15 +120,6 @@ public class Mapper {
         userDto.setLastName(user.getLastName());
         userDto.setEmail(user.getEmail());
         bookingDetails.setUser(userDto);
-    }
-
-    public void getSlot(String bookingId, BookingDetails bookingDetails) {
-        SlotsEntity slotsEntity = slotsRepo.findByBookingId(bookingId);
-        validateSlotEntity(slotsEntity);
-        SlotsDto slotsDto = new SlotsDto();
-        slotsDto.setFromDate(localDateFormat.format(slotsEntity.getFromDate()));
-        slotsDto.setToDate(localDateFormat.format(slotsEntity.getToDate()));
-        bookingDetails.setSlots(slotsDto);
     }
 
     public BookingInfo getBookingInfo(VehicleEntity vehicleEntity, BookingEntity bookingEntity) {
@@ -147,10 +139,9 @@ public class Mapper {
         getFilterDetailsForBooking(bookingInfo, vehicleEntity);
         bookingInfo.setBookingId(bookingEntity.getBookingId());
         bookingInfo.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
-        bookingInfo.setAmount(getAmount(bookingEntity));
-        bookingInfo.setTotalAmt(bookingInfo.getTotalAmt());
+        bookingInfo.setTotalAmt(bookingEntity.getTotalAmount());
         bookingInfo.setAdvancedPaid(bookingEntity.getAdvanceAmountPaid());
-        bookingInfo.setRemainingAmt(bookingInfo.getRemainingAmt());
+        bookingInfo.setRemainingAmt(bookingEntity.getRemainingAmount());
         return bookingInfo;
     }
 

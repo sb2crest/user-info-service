@@ -90,7 +90,7 @@ public class WeeklyReportScheduler {
         this.bookingRepo = bookingRepo;
     }
 
-    @Scheduled(cron = "0 0 0 * * SUN")
+    @Scheduled(cron = "0 0 0 * * SUN",zone = "Asia/Kolkata")
     public void sendWeeklyReportEmail() throws MessagingException, IOException {
 
         Session session = SessionProvider.createSession(mailHost, mailPort, emailUsername, emailPassword,

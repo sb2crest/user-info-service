@@ -89,7 +89,7 @@ public class DailyReportScheduler {
         this.bookingRepo = bookingRepo;
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 0 * * ?",zone = "Asia/Kolkata")
     public void sendDailyReportEmail() throws MessagingException, IOException {
         ByteArrayOutputStream outputStream = generateByteArray();
 

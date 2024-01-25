@@ -57,17 +57,10 @@ public class PaymentServiceImpl implements PaymentService {
     private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss");
 
     public PaymentServiceImpl() {
-        this.razorPayClient = null;
     }
 
     public PaymentServiceImpl(RazorpayClient razorPayClient) {
         this.razorPayClient = razorPayClient;
-    }
-
-    public PaymentServiceImpl(RazorpayClient razorpayClient, String keyID, String keySecret) {
-        this.razorPayClient = razorpayClient;
-        this.keyID = keyID;
-        this.keySecret = keySecret;
     }
 
     @Override
