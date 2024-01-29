@@ -73,8 +73,9 @@ public class PaymentServiceImpl implements PaymentService {
             try {
                 razorPayClient = new RazorpayClient(keyID, keySecret);
 
+                double amount = paymentDto.getAmount() / 100;
                 JSONObject orderRequest = new JSONObject();
-                orderRequest.put("amount", paymentDto.getAmount());
+                orderRequest.put("amount", Math.round(amount));
                 orderRequest.put("currency", "INR");
                 orderRequest.put("receipt", "payment_receipt_" + System.currentTimeMillis());
 
@@ -83,7 +84,7 @@ public class PaymentServiceImpl implements PaymentService {
 
                 PaymentEntity paymentEntity = new PaymentEntity();
                 paymentEntity.setRazorPayOrderId(razorpayOrderId);
-                paymentEntity.setAmount(paymentDto.getAmount());
+                paymentEntity.setAmount(Math.round(amount));
                 paymentEntity.setPaymentDate(LocalDateTime.now());
                 paymentEntity.setBookingId(paymentDto.getBookingId());
                 paymentRepository.save(paymentEntity);
