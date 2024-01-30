@@ -21,7 +21,7 @@ public class Validation {
     }
 
     public static void userEmailValidation(String email) {
-        if (email != null && !GmailValidator.isValidGmail(email)) {
+        if (email != null && !email.isEmpty() && !GmailValidator.isValidGmail(email)) {
             throw new BookingException(ResStatus.INVALID_EMAIL);
         }
     }

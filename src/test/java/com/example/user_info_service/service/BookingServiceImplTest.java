@@ -126,6 +126,13 @@ class BookingServiceImplTest {
     }
 
     @Test
+    void bookingVehicleWhenEmailIsEmpty() throws ParseException {
+        BookingDto bookingDto = createBookingPojo();
+        bookingDto.getUser().setEmail("");
+        assertNotNull(bookingService.bookingVehicle(bookingDto));
+    }
+
+    @Test
     void bookingVehicleWithInvalidEmail() throws ParseException {
         ArgumentCaptor<String> vehicleNumberCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<LocalDate> fromDateCaptor = ArgumentCaptor.forClass(LocalDate.class);
