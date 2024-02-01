@@ -57,7 +57,7 @@ public class Mapper {
         bookingEntity.setBookingId(generateId());
         bookingEntity.setMobile(bookingDto.getUser().getMobile());
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
-        bookingEntity.setBookingDate(LocalDateTime.now());
+        bookingEntity.setBookingDate(bookingDto.getBookedDate());
         bookingEntity.setTotalAmount(bookingDto.getTotalAmount());
         bookingRepo.save(bookingEntity);
     }
