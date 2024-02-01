@@ -98,7 +98,7 @@ public class Mapper {
         if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
             bookingDetails.setTotalAmt(bookingEntity.getTotalAmount());
             bookingDetails.setAdvancedPaid(getAmount(bookingEntity));
-            bookingDetails.setRemainingAmt(bookingEntity.getTotalAmount() - bookingEntity.getAdvanceAmountPaid());
+            bookingDetails.setRemainingAmt(bookingDetails.getTotalAmt() - bookingDetails.getAdvancedPaid());
         }
         SlotsDto slotsDto = new SlotsDto();
         slotsDto.setFromDate(localDateFormat.format(bookingEntity.getFromDate()));

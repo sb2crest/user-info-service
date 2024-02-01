@@ -43,10 +43,9 @@ public class TomorrowsBooking {
 
     private final DateTimeFormatter format = DateTimeFormatter.ofPattern("dd-MM-yy");
 
-    private final LocalDate tomorrow = LocalDate.now().plusDays(1);
-
     @Scheduled(cron = "0 0 10 * * ?",zone = "Asia/Kolkata")
     public void tomorrowsBookingDetails() throws Exception {
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
 
         List<BookingEntity> bookingEntityList = bookingRepo.getTomorrowsBooking(tomorrow);
 
@@ -85,6 +84,7 @@ public class TomorrowsBooking {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
+        LocalDate tomorrow = LocalDate.now().plusDays(1);
         StringBuilder messageBody = new StringBuilder();
         messageBody.append("<html><body>");
         messageBody.append("<h2>Booking Details of ").append(format.format(tomorrow)).append(" :</h2>");

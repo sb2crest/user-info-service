@@ -7,7 +7,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "master_db")
+@Table(name = "master_info")
 @Data
 public class MasterEntity implements Serializable {
 

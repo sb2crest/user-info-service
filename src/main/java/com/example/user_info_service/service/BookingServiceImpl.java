@@ -8,7 +8,6 @@ import com.example.user_info_service.dto.*;
 import com.example.user_info_service.repository.*;
 import com.example.user_info_service.util.CommonFunction;
 import com.example.user_info_service.util.Mapper;
-import com.example.user_info_service.util.Validation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -88,8 +87,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingData getBookingDetails(String mobile) {
         BookingData bookingData = new BookingData();
-        List<BookingDetails> enquiryAndBookedList = new ArrayList<>();
+        List<BookingDetails> bookedList = new ArrayList<>();
         List<BookingDetails> historyList = new ArrayList<>();
+        List<BookingDetails> enqiryList = new ArrayList<>();
 
         userMobileValidation(mobile);
 
@@ -100,14 +100,17 @@ public class BookingServiceImpl implements BookingService {
             mapper.getBookingData(bookingDetails, bookingEntity);
             mapper.getUser(bookingEntity, bookingDetails);
             mapper.getVehicleDetails(bookingDetails, bookingEntity.getVehicleNumber());
-            if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.ENQUIRY.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
-                enquiryAndBookedList.add(bookingDetails);
+            if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
+                bookedList.add(bookingDetails);
+            } else if (BookingStatusEnum.ENQUIRY.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
+                enqiryList.add(bookingDetails);
             } else {
                 historyList.add(bookingDetails);
             }
         }
-        bookingData.setEnquiryAndBookedList(enquiryAndBookedList);
+        bookingData.setBookedList(bookedList);
         bookingData.setHistoryList(historyList);
+        bookingData.setEnquiryList(enqiryList);
         return bookingData;
     }
 
