@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +58,10 @@ public class Mapper {
         bookingEntity.setBookingId(generateId());
         bookingEntity.setMobile(bookingDto.getUser().getMobile());
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
-        bookingEntity.setBookingDate(bookingDto.getBookedDate());
+
+        LocalDateTime currentDateTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+        bookingEntity.setBookingDate(currentDateTime);
+
         bookingEntity.setTotalAmount(bookingDto.getTotalAmount());
         bookingRepo.save(bookingEntity);
     }

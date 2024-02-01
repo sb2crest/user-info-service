@@ -17,8 +17,6 @@ public class BookingDto {
 
     private LocalDate toDate;
 
-    private LocalDateTime bookedDate;
-
     private UserDto user;
 
     private SlotsDto slots;
