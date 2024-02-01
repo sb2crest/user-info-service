@@ -8,7 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface SlotsRepo extends JpaRepository<SlotsEntity, Long> {
@@ -22,4 +24,13 @@ public interface SlotsRepo extends JpaRepository<SlotsEntity, Long> {
     @Query("SELECT s FROM SlotsEntity s WHERE s.vehicleNumber = :vehicleNumber")
     List<SlotsEntity> getByVehicleNUmber(String vehicleNumber);
 
+//    @Query("SELECT s FROM SlotsEntity s " +
+//            "WHERE s.bookingId IN (select b.bookingId from BookingEntity b " +
+//            "where b.bookingDate >= :fiveMin and b.bookingDate <= sixMin and b.bookingStatus = 'E')")
+//    List<SlotsEntity> slotToDelete(LocalDateTime fiveMin, LocalDateTime sixMin);
+
+    @Query("SELECT s FROM SlotsEntity s " +
+            "WHERE s.bookingId IN (SELECT b.bookingId FROM BookingEntity b " +
+            "WHERE (b.bookingDate BETWEEN :sixMin AND :fiveMin) AND b.bookingStatus = 'E')")
+    List<SlotsEntity> slotToDelete(@Param("fiveMin") LocalDateTime fiveMin, @Param("sixMin") LocalDateTime sixMin);
 }

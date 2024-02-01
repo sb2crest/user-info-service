@@ -5,11 +5,13 @@ import com.example.user_info_service.dto.PaymentDto;
 import com.example.user_info_service.dto.PaymentResponse;
 import com.example.user_info_service.entity.BookingEntity;
 import com.example.user_info_service.entity.PaymentEntity;
+import com.example.user_info_service.entity.SlotsEntity;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.dto.PaymentData;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.PaymentRepository;
+import com.example.user_info_service.repository.SlotsRepo;
 import com.example.user_info_service.util.Mapper;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
@@ -26,6 +28,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -42,6 +45,9 @@ public class PaymentServiceImplTest {
 
     @Mock
     private BookingRepo bookingRepo;
+
+    @Mock
+    private SlotsRepo slotsRepo;
 
     @Mock
     private Mapper mapper;
@@ -61,16 +67,36 @@ public class PaymentServiceImplTest {
     @Test
     public void testCreatePaymentWhenThrowsException() {
         PaymentDto paymentDto = getPaymentDto();
-        when(bookingRepo.validateUsingIdAndMobile(eq("booking123"), eq("1234567890"))).thenReturn(true);
+        when(bookingRepo.validateUsingIdAndMobile(eq("booking123"), eq("1234567890"))).thenReturn(new BookingEntity());
+        when(slotsRepo.findByBookingId(anyString())).thenReturn(null);
         PaymentResponse response = paymentService.createPayment(paymentDto);
 
         assertEquals("error", response.getStatus());
     }
 
     @Test
+    public void testCreatePaymentWhenThrowsExceptionWhenSlotIsBooked() {
+        PaymentDto paymentDto = getPaymentDto();
+        when(bookingRepo.validateUsingIdAndMobile(eq("booking123"), eq("1234567890"))).thenReturn(new BookingEntity());
+        when(slotsRepo.findByBookingId(anyString())).thenReturn(getSlotEntity());
+        PaymentResponse response = paymentService.createPayment(paymentDto);
+
+        assertEquals("error", response.getStatus());
+    }
+
+    @Test
+    public void testCreatePaymentWhenThrowsExceptionWhenForRequiredDatePaymentIsAlreadyDone() {
+        PaymentDto paymentDto = getPaymentDto();
+        when(bookingRepo.validateUsingIdAndMobile(eq("booking123"), eq("1234567890"))).thenReturn(new BookingEntity());
+        when(slotsRepo.findByBookingId(anyString())).thenReturn(null);
+        when(paymentRepository.isSlotBooked(any(),any(),any())).thenReturn(getPaymentEntity());
+        assertThrows(BookingException.class,()->paymentService.createPayment(paymentDto));
+    }
+
+    @Test
     public void testCreatePaymentWithInvalidBooking() {
         PaymentDto paymentDto = getPaymentDto();
-        when(bookingRepo.validateUsingIdAndMobile(eq("booking123"), eq("1234567890"))).thenReturn(false);
+        when(bookingRepo.validateUsingIdAndMobile(eq("booking123"), eq("1234567890"))).thenReturn(null);
         BookingException exception = assertThrows(BookingException.class, () -> paymentService.createPayment(paymentDto));
         assertEquals("5008: No record found with matching ID and Mobile Number : 500 INTERNAL_SERVER_ERROR", exception.getMessage());
     }
@@ -155,5 +181,15 @@ public class PaymentServiceImplTest {
         paymentDto.setAmount(1000);
 
         return paymentDto;
+    }
+
+    SlotsEntity getSlotEntity() {
+        SlotsEntity slotsEntity = new SlotsEntity();
+        slotsEntity.setFromDate(LocalDate.now());
+        slotsEntity.setToDate(LocalDate.now().plusDays(1));
+        slotsEntity.setBookingId("NB12vsq");
+        slotsEntity.setVehicleNumber("KA01HJ1234");
+        slotsEntity.setIsAvailable(false);
+        return slotsEntity;
     }
 }

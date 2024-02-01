@@ -17,6 +17,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -95,7 +96,7 @@ public class DailyReportSchedulerTest {
         bookingEntity.setId(1L);
         bookingEntity.setUserEntity(null);
         bookingEntity.setVehicleNumber("ka02m1234");
-        bookingEntity.setBookingDate(LocalDate.now());
+        bookingEntity.setBookingDate(LocalDateTime.now());
         bookingEntity.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity.setToDate(LocalDate.now().minusDays(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
@@ -109,7 +110,7 @@ public class DailyReportSchedulerTest {
         bookingEntity.setId(1L);
         bookingEntity.setUserEntity(null);
         bookingEntity.setVehicleNumber("ka02m1234");
-        bookingEntity.setBookingDate(LocalDate.now());
+        bookingEntity.setBookingDate(LocalDateTime.now());
         bookingEntity.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity.setToDate(LocalDate.now().minusDays(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());

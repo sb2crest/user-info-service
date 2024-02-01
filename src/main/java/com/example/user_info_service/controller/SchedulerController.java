@@ -24,6 +24,9 @@ public class SchedulerController {
     @Autowired
     TomorrowsBooking tomorrowsBooking;
 
+    @Autowired
+    BookingScheduler bookingScheduler;
+
     @GetMapping("/dailyReport")
     public ResponseEntity<String> getDailyReport() throws Exception {
         dailyReportScheduler.sendDailyReportEmail();
@@ -46,5 +49,11 @@ public class SchedulerController {
     public ResponseEntity<String> getTomorrowsBookings() throws Exception {
         tomorrowsBooking.tomorrowsBookingDetails();
         return ResponseEntity.ok("Reports sent successfully.");
+    }
+
+    @GetMapping("/slots")
+    public ResponseEntity<String> bookingScheduler() throws Exception {
+        bookingScheduler.bookingScheduler();
+        return ResponseEntity.ok("slot deleted successfully.");
     }
 }

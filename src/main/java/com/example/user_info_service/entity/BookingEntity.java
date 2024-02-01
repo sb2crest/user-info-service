@@ -7,6 +7,7 @@ import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -42,7 +43,7 @@ public class BookingEntity implements Serializable {
     private String bookingStatus;
 
     @Column(name = "booking_date")
-    private LocalDate bookingDate;
+    private LocalDateTime bookingDate;
 
     @Column(name = "total_amt")
     private Double totalAmount;

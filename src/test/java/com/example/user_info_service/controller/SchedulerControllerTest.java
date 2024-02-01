@@ -32,6 +32,9 @@ class SchedulerControllerTest {
     @MockBean
     TomorrowsBooking tomorrowsBooking;
 
+    @MockBean
+    BookingScheduler bookingScheduler;
+
     @Autowired
     WebApplicationContext webApplicationContext;
 
@@ -74,6 +77,14 @@ class SchedulerControllerTest {
         Mockito.doNothing().when(tomorrowsBooking).tomorrowsBookingDetails();
 
         mvc.perform(get("/tomorrowsBooking"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getSlots() throws Exception {
+        Mockito.doNothing().when(bookingScheduler).bookingScheduler();
+
+        mvc.perform(get("/slots"))
                 .andExpect(status().isOk());
     }
 

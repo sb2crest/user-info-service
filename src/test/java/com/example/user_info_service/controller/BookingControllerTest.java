@@ -13,12 +13,14 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -115,7 +117,11 @@ class BookingControllerTest {
 
     @Test
     void getInTouchTest() throws Exception {
-        mvc.perform(post("/getInTouch").content(TestUtil.convertObjectToJsonBytes(getUserData()))
+        UserData userData = getUserData();
+        doNothing().when(bookingService).getInTouch(userData);
+
+        mvc.perform(post("/getInTouch")
+                        .content(TestUtil.convertObjectToJsonBytes(userData))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }

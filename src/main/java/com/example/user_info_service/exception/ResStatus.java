@@ -23,6 +23,7 @@ public enum ResStatus {
     DISTANCE_CALCULATION_URL("5013","Error occurs while hitting the URL for distance calculation"),
     ERROR_WHILE_SENDING_EMAIL("5014","Error occurs while sending an email"),
     ERROR_WHILE_READING_EMAIL_PATH("5015","Error occurs while reading an email path"),
+    SLOT_ALREADY_BOOKED("5016","Slot Already Booked For The Given Date")
     ;
 
     private final String code;

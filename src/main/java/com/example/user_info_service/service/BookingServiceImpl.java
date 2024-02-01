@@ -77,6 +77,7 @@ public class BookingServiceImpl implements BookingService {
 
         mapper.saveUser(bookingDto);
         mapper.saveBooking(bookingEntity, bookingDto);
+        mapper.saveSlot(bookingEntity);
 
         bookingResponse.setBookingId(bookingEntity.getBookingId());
         bookingResponse.setMessage("Booking successful");
@@ -224,7 +225,7 @@ public class BookingServiceImpl implements BookingService {
             List<VehicleEntity> vehicleEntities = vehicleInfoRepo.getAvailableVehicle(filterDetails, fromDate, toDate);
 
             if (vehicleEntities == null || vehicleEntities.isEmpty()) {
-                throw new BookingException(ResStatus.VEHICLE_NOT_AVAILABLE);
+                return new ArrayList<>();
             }
             List<String> uniqueVehicleNumbers = vehicleEntities.stream()
                     .map(VehicleEntity::getVehicleNumber)

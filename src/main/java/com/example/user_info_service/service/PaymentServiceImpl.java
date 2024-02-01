@@ -2,6 +2,7 @@ package com.example.user_info_service.service;
 
 import com.example.user_info_service.entity.BookingEntity;
 import com.example.user_info_service.entity.PaymentEntity;
+import com.example.user_info_service.entity.SlotsEntity;
 import com.example.user_info_service.exception.BookingException;
 import com.example.user_info_service.exception.ResStatus;
 import com.example.user_info_service.dto.BookingResponse;
@@ -11,6 +12,7 @@ import com.example.user_info_service.dto.PaymentResponse;
 import com.example.user_info_service.model.BookingStatusEnum;
 import com.example.user_info_service.repository.BookingRepo;
 import com.example.user_info_service.repository.PaymentRepository;
+import com.example.user_info_service.repository.SlotsRepo;
 import com.example.user_info_service.util.Mapper;
 import com.razorpay.Order;
 import lombok.extern.slf4j.Slf4j;
@@ -52,6 +54,9 @@ public class PaymentServiceImpl implements PaymentService {
     BookingRepo bookingRepo;
 
     @Autowired
+    SlotsRepo slotsRepo;
+
+    @Autowired
     Mapper mapper;
 
     private final DateTimeFormatter localDateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm:ss");
@@ -67,14 +72,23 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentResponse createPayment(PaymentDto paymentDto) {
         PaymentResponse response = new PaymentResponse();
 
-        Boolean validate = bookingRepo.validateUsingIdAndMobile(paymentDto.getBookingId(), paymentDto.getMobile());
-        if (validate) {
-
+        BookingEntity bookingEntity = bookingRepo.validateUsingIdAndMobile(paymentDto.getBookingId(), paymentDto.getMobile());
+        if (bookingEntity != null) {
             try {
+
+                SlotsEntity slotsEntity = slotsRepo.findByBookingId(paymentDto.getBookingId());
+                if (slotsEntity == null) {
+                    PaymentEntity isPaidForBooking = paymentRepository.isSlotBooked(bookingEntity.getFromDate(), bookingEntity.getToDate(), bookingEntity.getVehicleNumber());
+                    if(isPaidForBooking != null){
+                        throw new BookingException(ResStatus.SLOT_ALREADY_BOOKED);
+                    }
+                    mapper.saveSlot(bookingEntity);
+                }
+
                 razorPayClient = new RazorpayClient(keyID, keySecret);
 
                 JSONObject orderRequest = new JSONObject();
-                orderRequest.put("amount", paymentDto.getAmount()*100);
+                orderRequest.put("amount", paymentDto.getAmount() * 100);
                 orderRequest.put("currency", "INR");
                 orderRequest.put("receipt", "payment_receipt_" + System.currentTimeMillis());
 
@@ -144,7 +158,6 @@ public class PaymentServiceImpl implements PaymentService {
             bookingEntity.setRemainingAmount(bookingEntity.getTotalAmount() - bookingEntity.getAdvanceAmountPaid());
             bookingRepo.save(bookingEntity);
             paymentRepository.save(paymentEntity);
-            mapper.saveSlot(bookingEntity);
             bookingResponse.setMessage("Payment Successful");
             bookingResponse.setStatusCode(HttpStatus.OK.value());
             return new ResponseEntity<>(bookingResponse, HttpStatus.OK);
@@ -152,7 +165,8 @@ public class PaymentServiceImpl implements PaymentService {
 
             paymentEntity.setRazorPayPaymentId(paymentData.getRazorPayPaymentId());
             paymentEntity.setPaymentStatus(BAD_STATUS);
-
+            SlotsEntity slotsEntity = slotsRepo.findByBookingId(paymentEntity.getBookingId());
+            slotsRepo.delete(slotsEntity);
             paymentRepository.save(paymentEntity);
             bookingResponse.setMessage("Payment Failed");
             bookingResponse.setStatusCode(HttpStatus.BAD_REQUEST.value());

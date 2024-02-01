@@ -25,8 +25,8 @@ public interface BookingRepo extends JpaRepository<BookingEntity, Long> {
     List<BookingEntity> getReportForWeeklyAndMonthly(LocalDate fromDate, LocalDate toDate);
 
 //    @Query("select b from BookingEntity b where b.bookingId = :bookingId and b.mobile = :mobile")
-    @Query("select count(b) > 0 from BookingEntity b where b.bookingId = :bookingId and b.mobile = :mobile")
-    Boolean validateUsingIdAndMobile(String bookingId, String mobile);
+    @Query("select b from BookingEntity b where b.bookingId = :bookingId and b.mobile = :mobile")
+    BookingEntity validateUsingIdAndMobile(String bookingId, String mobile);
 
     @Query("select b from BookingEntity b where b.mobile = :mobile")
     List<BookingEntity> getByMobileNumber(String mobile);

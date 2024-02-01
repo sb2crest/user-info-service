@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -220,7 +221,7 @@ class MapperTest {
         bookingEntity.setVehicleNumber("ka02m1234");
         bookingEntity.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity.setToDate(LocalDate.now());
-        bookingEntity.setBookingDate(LocalDate.now().minusWeeks(1));
+        bookingEntity.setBookingDate(LocalDateTime.now().minusWeeks(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.BOOKED.getCode());
         UserEntity user = new UserEntity();
         user.setLastName("Thalapathy");

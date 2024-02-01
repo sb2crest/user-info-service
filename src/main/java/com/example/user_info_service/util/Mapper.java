@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,7 @@ public class Mapper {
         bookingEntity.setBookingId(generateId());
         bookingEntity.setMobile(bookingDto.getUser().getMobile());
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
-        bookingEntity.setBookingDate(LocalDate.now());
+        bookingEntity.setBookingDate(LocalDateTime.now());
         bookingEntity.setTotalAmount(bookingDto.getTotalAmount());
         bookingRepo.save(bookingEntity);
     }
@@ -93,7 +94,7 @@ public class Mapper {
     public void getBookingData(BookingDetails bookingDetails, BookingEntity bookingEntity) {
         bookingDetails.setBookingId(bookingEntity.getBookingId());
         bookingDetails.setBookingStatus(BookingStatusEnum.getDesc(bookingEntity.getBookingStatus()));
-        bookingDetails.setBookingDate(bookingEntity.getBookingDate());
+        bookingDetails.setBookingDate(LocalDate.from(bookingEntity.getBookingDate()));
         if (BookingStatusEnum.BOOKED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus()) || BookingStatusEnum.COMPLETED.getCode().equalsIgnoreCase(bookingEntity.getBookingStatus())) {
             bookingDetails.setTotalAmt(bookingEntity.getTotalAmount());
             bookingDetails.setAdvancedPaid(getAmount(bookingEntity));

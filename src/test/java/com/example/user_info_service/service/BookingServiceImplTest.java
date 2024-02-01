@@ -20,6 +20,7 @@ import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.text.ParseException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -266,15 +267,14 @@ class BookingServiceImplTest {
     void getVehicleAvailabilityTestWhenVehicleEntitiesIsNull() throws IOException {
         VehiclesAvailable vehiclesAvailable = getVehiclesAvailable();
         when(vehicleInfoRepo.getAvailableVehicle(anyList(), any(), any())).thenReturn(null);
-        assertThrows(BookingException.class, () -> bookingService.getVehicleAvailability(vehiclesAvailable));
+        assertNotNull(bookingService.getVehicleAvailability(vehiclesAvailable));
     }
 
     @Test
     void getVehicleAvailabilityTestWhenVehicleEntitiesIsEmpty() throws IOException {
-
         VehiclesAvailable vehiclesAvailable = getVehiclesAvailable();
-        when(vehicleInfoRepo.getAvailableVehicle(anyList(), any(), any())).thenReturn(Collections.emptyList());
-        assertThrows(BookingException.class, () -> bookingService.getVehicleAvailability(vehiclesAvailable));
+        when(vehicleInfoRepo.getAvailableVehicle(anyList(), any(), any())).thenReturn(new ArrayList<>());
+        assertNotNull(bookingService.getVehicleAvailability(vehiclesAvailable));
     }
 
     @Test
@@ -405,7 +405,7 @@ class BookingServiceImplTest {
         bookingEntity.setVehicleNumber("ka02m1234");
         bookingEntity.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity.setToDate(LocalDate.now());
-        bookingEntity.setBookingDate(LocalDate.now().minusWeeks(1));
+        bookingEntity.setBookingDate(LocalDateTime.now().minusWeeks(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
         UserEntity user = new UserEntity();
         user.setLastName("Thalapathy");
@@ -427,7 +427,7 @@ class BookingServiceImplTest {
         bookingEntity.setVehicleNumber("ka02m1234");
         bookingEntity.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity.setToDate(LocalDate.now());
-        bookingEntity.setBookingDate(LocalDate.now().minusWeeks(1));
+        bookingEntity.setBookingDate(LocalDateTime.now().minusWeeks(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
         bookingEntity.setTotalAmount(10000.00);
         bookingEntity.setAdvanceAmountPaid(5000.00);
@@ -442,7 +442,7 @@ class BookingServiceImplTest {
         bookingEntity1.setVehicleNumber("ka02m1234");
         bookingEntity1.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity1.setToDate(LocalDate.now());
-        bookingEntity1.setBookingDate(LocalDate.now().minusWeeks(1));
+        bookingEntity1.setBookingDate(LocalDateTime.now().minusWeeks(1));
         bookingEntity1.setBookingStatus(BookingStatusEnum.BOOKED.getCode());
         bookingEntity1.setTotalAmount(10000.00);
         bookingEntity1.setAdvanceAmountPaid(5000.00);
@@ -457,7 +457,7 @@ class BookingServiceImplTest {
         bookingEntity2.setVehicleNumber("ka02m1234");
         bookingEntity2.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity2.setToDate(LocalDate.now());
-        bookingEntity2.setBookingDate(LocalDate.now().minusWeeks(1));
+        bookingEntity2.setBookingDate(LocalDateTime.now().minusWeeks(1));
         bookingEntity2.setBookingStatus(BookingStatusEnum.COMPLETED.getCode());
         bookingEntity2.setTotalAmount(10000.00);
         bookingEntity2.setAdvanceAmountPaid(5000.00);

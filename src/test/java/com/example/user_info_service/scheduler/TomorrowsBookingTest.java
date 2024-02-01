@@ -21,6 +21,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -106,7 +107,7 @@ class TomorrowsBookingTest {
         userEntity.setEmail("abc@gmail.com");
         booking.setUserEntity(userEntity);
         booking.setVehicleNumber("ka02m1234");
-        booking.setBookingDate(LocalDate.now());
+        booking.setBookingDate(LocalDateTime.now());
         booking.setFromDate(LocalDate.now().minusDays(3));
         booking.setToDate(LocalDate.now().minusDays(1));
         booking.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
@@ -123,7 +124,7 @@ class TomorrowsBookingTest {
         user.setEmail("abc@gmail.com");
         bookingEntity.setUserEntity(user);
         bookingEntity.setVehicleNumber("ka02m1234");
-        bookingEntity.setBookingDate(LocalDate.now());
+        bookingEntity.setBookingDate(LocalDateTime.now());
         bookingEntity.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity.setToDate(LocalDate.now().minusDays(1));
         bookingEntity.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
@@ -140,7 +141,7 @@ class TomorrowsBookingTest {
         user1.setEmail("abc@gmail.com");
         bookingEntity1.setUserEntity(user1);
         bookingEntity1.setVehicleNumber("ka02m1234");
-        bookingEntity1.setBookingDate(LocalDate.now());
+        bookingEntity1.setBookingDate(LocalDateTime.now());
         bookingEntity1.setFromDate(LocalDate.now().minusDays(3));
         bookingEntity1.setToDate(LocalDate.now().minusDays(1));
         bookingEntity1.setBookingStatus(BookingStatusEnum.ENQUIRY.getCode());
